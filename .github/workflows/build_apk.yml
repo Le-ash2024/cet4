@@ -1,0 +1,98 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "main.py"
+      - "assets/**"
+      - "pyproject.toml"
+      - "requirements.txt"
+      - ".github/workflows/build_apk.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build arm64 APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Install Flet CLI
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "flet[cli]==1.0.5"
+
+      - name: Install Android SDK packages
+        run: |
+          set -e
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          fi
+          if [ ! -x "$SDKMANAGER" ]; then
+            echo "sdkmanager not found" >&2
+            exit 1
+          fi
+
+          set +o pipefail
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          set -o pipefail
+
+          "$SDKMANAGER" \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;28.2.13676358"
+
+      - name: Build APK with Flet
+        env:
+          FLUTTER_SUPPRESS_ANALYTICS: "true"
+        run: |
+          flet build apk . \
+            --project cet4_reading_helper \
+            --product "四级阅读刷题助手" \
+            --org com.cet4 \
+            --bundle-id com.cet4.readinghelper \
+            --artifact CET4ReadingHelper \
+            --arch arm64-v8a \
+            --python-version 3.12 \
+            --skip-flutter-doctor \
+            --yes \
+            --verbose
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CET4ReadingHelper-APK
+          path: build/apk/*.apk
+          if-no-files-found: error
+          retention-days: 30
