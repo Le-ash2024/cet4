@@ -1,115 +1,75 @@
 # -*- coding: utf-8 -*-
 r"""
-四级阅读刷题助手（Windows 桌面版 / Flet / 完全离线）
+四级阅读刷题助手（Windows / Android / Flet / 完全离线）
 =====================================================
 
 一、安装依赖
 ------------
-建议在项目目录中创建虚拟环境后安装（Windows PowerShell）：
+Android/纯运行环境：
 
-    cd cet4_reading_helper
-    python -m venv .venv
-    .\.venv\Scripts\activate
     python -m pip install -r requirements.txt
 
-如果不用 requirements.txt，也可以直接安装：
+Windows 桌面开发/打包环境（包含 flet desktop、CLI 和 PyInstaller）：
 
-    python -m pip install "flet[desktop,cli]==1.0.5"
+    python -m pip install -r requirements-desktop.txt
 
-说明：Flet 1.x 把桌面运行时和打包命令拆成了 extras。只执行 `pip install flet`
-可能装不到 `flet-desktop` / `flet-cli`，所以这里安装 desktop + cli 两个 extras
-（`requirements.txt` 已写好）。如果你的环境里已经可以正常启动 Flet 桌面窗口，
-继续用现有的 Flet 也可以。（本文件同时兼容 `flet run main.py` 和
-`python main.py` 两种启动方式。）
-
-二、放置数据文件
-----------------
-程序启动时读取项目目录下的：
+二、资源文件
+------------
+`flet build` 会把 assets 目录打包进 APK，并注入 FLET_ASSETS_DIR 绝对路径：
 
     cet4_reading_helper/
     ├── main.py
-    └── data/
-        ├── articles.json     # 文章、题目、答案、解析
-        └── dict.db           # SQLite 离线词典
+    ├── assets/
+    │   ├── icon.png
+    │   ├── dict.db                 # ECDICT 四六级离线词典
+    │   └── data/
+    │       └── articles.json       # 文章、题目、答案、解析、翻译
+    └── scripts/build_ecdict.py
 
-两个文件都不存在时，程序会自动生成一份最小示例数据（1 篇文章、3 道题、
-20 个常用词），生成位置仍然是上面的 data/ 目录。直接运行即可看到界面。
-如果只缺其中一个，也只会补齐缺失的那一个，不会覆盖已有数据。
+`articles.json` 除原有字段外，还支持：
 
-`articles.json` 必须是 JSON 数组；每篇文章严格包含：
-
-    {
-      "id": "2024_12_set1_p1",
-      "year": "2024",
-      "month": "12",
-      "set": "第一套",
-      "type": "仔细阅读 Passage 1",
-      "passage": "文章正文……",
-      "questions": [
-        {
-          "id": "q1",
-          "stem": "题干……",
-          "options": {"A": "……", "B": "……", "C": "……", "D": "……"},
-          "answer": "B",
-          "explanation": "解析……"
+    "passage_translation": ["第一段中文", "第二段中文", "..."],
+    "questions": [
+      {
+        "stem_translation": "题干中文翻译",
+        "options_translation": {
+          "A": "A 选项中文", "B": "...", "C": "...", "D": "..."
         }
-      ]
-    }
+      }
+    ]
 
-`dict.db` 至少包含一张 dictionary 表：
-
-    CREATE TABLE dictionary (
-        word        TEXT PRIMARY KEY,
-        pos         TEXT,
-        translation TEXT,
-        phrases     TEXT
-    );
-
-其中 phrases 可以用分号（中英文分号都可以）或换行分隔多个短语。
+缺少翻译字段时，界面显示“暂无翻译”。
 
 三、运行
 --------
-方式 A（推荐）：
-
     python main.py
-
-方式 B：
-
+    # 或
     flet run main.py
 
-程序是纯离线桌面应用，不会请求任何在线 API。
+Android APK 云端打包见 .github/workflows/build_apk.yml；也可在已配置好
+JDK 17 / Android SDK 的机器上执行：
 
-四、用 flet pack 打包成 exe
----------------------------
-在项目目录中执行（注意 data 必须一起打进去）：
+    flet build apk . --arch arm64-v8a --python-version 3.12 \
+        --skip-flutter-doctor --yes
 
-    flet pack main.py ^
-        --name CET4ReadingHelper ^
-        --product-name "四级阅读刷题助手" ^
-        --file-description "离线四级阅读练习工具" ^
-        --add-data "data:data"
+四、重建离线词典
+----------------
+    python scripts/build_ecdict.py --source path/to/ecdict.csv
 
-生成文件在 `dist\CET4ReadingHelper.exe`。
-
-`--add-data` 的 source:destination 是 Flet 文档中的写法。若你使用的旧版
-Flet 报路径分隔符错误，把 "data:data" 换成 Windows 版 PyInstaller 常见的
-"data;data" 即可。
-
-打包后，程序优先读取 exe 同级的 data/ 目录（方便你以后替换题库和词典）；
-如果同级没有 data/，再读取打包进 exe 内部的 data/。因此既可以直接分发
-exe，也可以把 data/ 文件夹放在 exe 旁边一起分发。
+脚本会过滤 ECDICT 的 CET4/CET6/GK/ZK 词汇，生成 dictionary、word_forms
+和 collocations 表。没有 --source 时会自动下载 ECDICT CSV。
+ECDICT: https://github.com/skywind3000/ECDICT (MIT License)
 
 五、实现要点
 ------------
-1. 文章不是一整块 Text：每个英文单词都由独立的 TextSpan 渲染，并各自绑定
-   on_click，所以每个单词都能单独识别、单独查词。
-2. 查词结果不是对话框，也不跳页，而是插入在文章面板正下方的三行窄卡片。
-   卡片外层包了 GestureDetector，避免点卡片本身时被“点击外部关闭”的逻辑误伤。
-3. 页面根 Container 只在词卡显示时临时挂上 on_click，负责“点击卡片外区域”
-   收起卡片；卡片隐藏后立刻置回 None，避免抢走单词 TextSpan 的点击。卡片自身
-   还有一个 GestureDetector 消费点击，所以点卡片不会误关闭。
-4. 答题没有提交按钮：点击 A/B/C/D 后立即判定、着色并展开解析，并自动把解析
-   滚动到可视区域；每道题只允许作答一次，防止反复试答案。
+1. 每个英文单词由独立 TextSpan 绑定 on_click；点击词卡只更新卡片内容，不
+   rebuild 整页，并记录/恢复 ScrollableControl 的 offset，阅读位置不会跳顶。
+2. 词卡为正文下方三行窄卡片，短语同时显示英文和中文释义。
+3. 每段正文下方有“查看本段翻译”ExpansionTile；解析顶部显示题干和四个选项
+   的中文翻译。
+4. 作答状态写入 FLET_APP_STORAGE_DATA（本地开发为 .progress/answers.json）；
+   目录显示 ✅ 正确完成 / ❌ 完成错误 / ⚪ 未做，已完成文章可“重新做题”清空本篇记录。
+5. 答题没有提交按钮：点击 A/B/C/D 后立即判定、着色并展开解析并自动滚动。
 """
 
 from __future__ import annotations
@@ -255,20 +215,54 @@ DICTIONARY_SEED: list[tuple[str, str, str, str]] = [
     ("and", "conj.", "和；并且", ""),
     ("in", "prep.", "在……里；在……期间", ""),
     ("is", "v.", "是（be 的第三人称单数）", ""),
-    ("reading", "n.", "阅读；读物", "reading comprehension；reading habit"),
-    ("habit", "n.", "习惯；习性", "form a habit；reading habit"),
-    ("improve", "v.", "改善；提高", "improve on；improve skills"),
-    ("language", "n.", "语言；言语", "body language；foreign language"),
-    ("knowledge", "n.", "知识；了解", "general knowledge；to one's knowledge"),
-    ("attention", "n.", "注意力；关注", "pay attention to；draw attention to"),
-    ("focus", "v./n.", "集中；焦点", "focus on；focus attention on"),
-    ("memory", "n.", "记忆；回忆", "from memory；short-term memory"),
-    ("routine", "n./adj.", "常规；日常的", "daily routine；routine work"),
-    ("benefit", "n./v.", "好处；受益", "benefit from；for the benefit of"),
-    ("practice", "n./v.", "练习；实践", "in practice；practice makes perfect"),
-    ("information", "n.", "信息；资料", "information about；a piece of information"),
-    ("consistent", "adj.", "一致的；持续的", "be consistent with；consistent effort"),
+    ("reading", "n.", "阅读；读物", "reading comprehension：阅读理解；reading habit：阅读习惯"),
+    ("habit", "n.", "习惯；习性", "form a habit：养成习惯；reading habit：阅读习惯"),
+    ("improve", "v.", "改善；提高", "improve on：改进；improve skills：提高技能"),
+    ("language", "n.", "语言；言语", "body language：肢体语言；foreign language：外语"),
+    ("knowledge", "n.", "知识；了解", "general knowledge：常识；to one's knowledge：据某人所知"),
+    ("attention", "n.", "注意力；关注", "pay attention to：注意；draw attention to：引起注意"),
+    ("focus", "v./n.", "集中；焦点", "focus on：专注于；focus attention on：集中注意力于"),
+    ("memory", "n.", "记忆；回忆", "from memory：凭记忆；short-term memory：短期记忆"),
+    ("routine", "n./adj.", "常规；日常的", "daily routine：日常安排；routine work：日常工作"),
+    ("benefit", "n./v.", "好处；受益", "benefit from：从……受益；for the benefit of：为了……的利益"),
+    ("practice", "n./v.", "练习；实践", "in practice：实际上；practice makes perfect：熟能生巧"),
+    ("information", "n.", "信息；资料", "information about：关于……的信息；a piece of information：一条信息"),
+    ("consistent", "adj.", "一致的；持续的", "be consistent with：与……一致；consistent effort：持续努力"),
 ]
+
+# 高频四六级固定搭配（用于示例词典和 ECDICT 构建脚本）
+COLLOCATIONS_SEED: dict[str, list[tuple[str, str]]] = {
+    "account": [("account for", "解释；占……比例")],
+    "adapt": [("adapt to", "适应")],
+    "apply": [("apply for", "申请"), ("apply to", "适用于")],
+    "attention": [("pay attention to", "注意；关注")],
+    "benefit": [("benefit from", "从……中受益")],
+    "break": [("break down", "出故障；分解")],
+    "bring": [("bring about", "带来；引起")],
+    "carry": [("carry out", "执行；实施")],
+    "come": [("come up with", "提出；想出")],
+    "concentrate": [("concentrate on", "专注于")],
+    "contribute": [("contribute to", "促成；有助于")],
+    "cope": [("cope with", "应对；处理")],
+    "depend": [("depend on", "依赖；取决于")],
+    "devote": [("devote oneself to", "致力于；献身于")],
+    "difference": [("make a difference", "产生影响")],
+    "effect": [("have an effect on", "对……有影响")],
+    "focus": [("focus on", "专注于；集中注意力于")],
+    "get": [("get rid of", "摆脱；去除")],
+    "give": [("give up", "放弃")],
+    "lead": [("lead to", "导致；通向")],
+    "make": [("make sense", "有意义；讲得通"), ("make sure", "确保")],
+    "participate": [("participate in", "参加")],
+    "pay": [("pay attention to", "注意；关注")],
+    "refer": [("refer to", "提到；参考")],
+    "rely": [("rely on", "依靠；依赖")],
+    "result": [("result in", "导致"), ("result from", "由……造成")],
+    "set": [("set up", "建立；设置")],
+    "take": [("take advantage of", "利用"), ("take measures", "采取措施")],
+    "tend": [("tend to", "倾向于")],
+    "turn": [("turn out", "结果是；证明是")],
+}
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +277,8 @@ class Question:
     options: dict[str, str]
     answer: str
     explanation: str
+    stem_translation: str = ""
+    options_translation: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -294,6 +290,7 @@ class Article:
     type: str
     passage: str
     questions: list[Question] = field(default_factory=list)
+    passage_translation: list[str] = field(default_factory=list)
 
     @property
     def meta(self) -> str:
@@ -360,6 +357,81 @@ def resolve_data_dir() -> Path:
     return assets_data
 
 
+def resolve_dictionary_path() -> Path:
+    """
+    完整离线词典固定放在 assets/dict.db。
+
+    Android 生产包通过 FLET_ASSETS_DIR 定位；桌面打包优先使用 exe 同级
+    assets/dict.db，其次使用 PyInstaller 临时目录中的资源。
+    """
+    assets_db = get_assets_dir() / "dict.db"
+    candidates: list[Path] = [assets_db]
+
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        candidates.insert(0, exe_dir / "assets" / "dict.db")
+        bundle = _bundle_dir()
+        if bundle:
+            candidates.insert(1, bundle / "assets" / "dict.db")
+        candidates.extend(
+            [
+                exe_dir / "dict.db",
+                exe_dir / "data" / "dict.db",
+            ]
+        )
+
+    # 兼容旧版本把 dict.db 放在 assets/data 或项目 data/ 的情况。
+    candidates.extend(
+        [
+            get_assets_dir() / "data" / "dict.db",
+            APP_DIR / "data" / "dict.db",
+        ]
+    )
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return assets_db
+
+
+def resolve_progress_path() -> Path:
+    """
+    做题记录写到应用私有可写目录。
+
+    Android 生产包由 Flet 注入 FLET_APP_STORAGE_DATA；本地开发回退到项目内
+    .progress/ 目录。该文件不在 assets 中，重新打包不会覆盖用户记录。
+    """
+    env_storage = os.environ.get("FLET_APP_STORAGE_DATA") or os.environ.get(
+        "FLET_APP_STORAGE_CACHE"
+    )
+    base = Path(env_storage) if env_storage else APP_DIR / ".progress"
+    base.mkdir(parents=True, exist_ok=True)
+    return base / "answers.json"
+
+
+def load_progress(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    try:
+        return _parse_saved_answers(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError):
+        return {}
+
+
+def save_progress(path: Path, answers: dict[str, str]) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = path.with_suffix(".tmp")
+        temp_path.write_text(
+            json.dumps(answers, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        temp_path.replace(path)
+    except OSError:
+        # 存储失败不应影响做题。
+        pass
+
+
 def ensure_sample_articles(path: Path) -> None:
     """articles.json 不存在时写入最小示例（不覆盖已有文件）。"""
     if path.exists():
@@ -373,8 +445,8 @@ def ensure_sample_articles(path: Path) -> None:
 
 def ensure_dictionary(path: Path) -> None:
     """
-    dict.db 不存在时创建 dictionary 表并写入 20 个常用词。
-    如果文件存在但表为空，也会补充示例词条（已有内容不会删除）。
+    dict.db 不存在时创建 dictionary / word_forms / collocations 表，并写入
+    20 个示例词。生产环境应使用 scripts/build_ecdict.py 生成完整词典。
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(str(path))
@@ -389,6 +461,32 @@ def ensure_dictionary(path: Path) -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS word_forms (
+                form  TEXT NOT NULL,
+                lemma TEXT NOT NULL,
+                PRIMARY KEY (form, lemma)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS collocations (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                word        TEXT NOT NULL,
+                phrase      TEXT NOT NULL,
+                translation TEXT NOT NULL,
+                UNIQUE(word, phrase)
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_word_forms_form ON word_forms(form)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_collocations_word ON collocations(word)"
+        )
         count = connection.execute("SELECT COUNT(*) FROM dictionary").fetchone()[0]
         if count == 0:
             connection.executemany(
@@ -398,19 +496,46 @@ def ensure_dictionary(path: Path) -> None:
                 """,
                 DICTIONARY_SEED,
             )
+        collocation_count = connection.execute(
+            "SELECT COUNT(*) FROM collocations"
+        ).fetchone()[0]
+        if collocation_count == 0:
+            rows: list[tuple[str, str, str]] = []
+            for word, items in COLLOCATIONS_SEED.items():
+                for phrase, translation in items:
+                    rows.append((word, phrase, translation))
+            connection.executemany(
+                """
+                INSERT OR IGNORE INTO collocations(word, phrase, translation)
+                VALUES (?, ?, ?)
+                """,
+                rows,
+            )
         connection.commit()
     finally:
         connection.close()
 
 
-def ensure_sample_data(data_dir: Path) -> None:
+def ensure_sample_data(data_dir: Path, dictionary_path: Path) -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
     ensure_sample_articles(data_dir / "articles.json")
-    ensure_dictionary(data_dir / "dict.db")
+    # Android assets are read-only. Never open an existing bundled DB for writes.
+    if not dictionary_path.exists():
+        ensure_dictionary(dictionary_path)
 
 
 def _as_text(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
+
+
+def _paragraph_translations(value: Any) -> list[str]:
+    """passage_translation 支持数组，或按空行分隔的字符串。"""
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        blocks = re.split(r"\n\s*\n", value.replace("\r\n", "\n").strip())
+        return [block.strip() for block in blocks if block.strip()]
+    return []
 
 
 def _required_text(item: dict[str, Any], key: str, where: str) -> str:
@@ -492,6 +617,14 @@ def load_articles(path: Path) -> list[Article]:
             if answer not in OPTION_LETTERS:
                 raise ValueError(f"{qwhere} 的 answer 必须是 A/B/C/D 之一，当前为 {answer!r}。")
 
+            raw_options_translation = qitem.get("options_translation")
+            options_translation: dict[str, str] = {}
+            if isinstance(raw_options_translation, dict):
+                for letter in OPTION_LETTERS:
+                    options_translation[letter] = _as_text(
+                        raw_options_translation.get(letter)
+                    )
+
             questions.append(
                 Question(
                     qid=qid,
@@ -499,6 +632,8 @@ def load_articles(path: Path) -> list[Article]:
                     options=options,
                     answer=answer,
                     explanation=explanation,
+                    stem_translation=_as_text(qitem.get("stem_translation")),
+                    options_translation=options_translation,
                 )
             )
 
@@ -511,6 +646,9 @@ def load_articles(path: Path) -> list[Article]:
                 type=_required_text(item, "type", where),
                 passage=passage,
                 questions=questions,
+                passage_translation=_paragraph_translations(
+                    item.get("passage_translation")
+                ),
             )
         )
 
@@ -640,10 +778,20 @@ class DictionaryStore:
     def __init__(self, path: Path):
         self.path = path
         self.connection: sqlite3.Connection | None = None
+        self.has_word_forms = False
+        self.has_collocations = False
         try:
             self.connection = sqlite3.connect(str(path))
             self.connection.row_factory = sqlite3.Row
             self.connection.execute("PRAGMA query_only = ON")
+            tables = {
+                str(row["name"])
+                for row in self.connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                ).fetchall()
+            }
+            self.has_word_forms = "word_forms" in tables
+            self.has_collocations = "collocations" in tables
         except sqlite3.Error:
             self.connection = None
 
@@ -655,10 +803,67 @@ class DictionaryStore:
                 pass
             self.connection = None
 
+    def _lemma_candidates(self, candidate: str) -> list[str]:
+        if not self.has_word_forms or self.connection is None:
+            return []
+        try:
+            rows = self.connection.execute(
+                """
+                SELECT lemma FROM word_forms
+                WHERE form = ? COLLATE NOCASE
+                LIMIT 3
+                """,
+                (candidate,),
+            ).fetchall()
+            return [str(row["lemma"]) for row in rows if row["lemma"]]
+        except sqlite3.Error:
+            return []
+
+    def _collocations(self, word: str) -> list[str]:
+        if not self.has_collocations or self.connection is None:
+            return []
+        try:
+            rows = self.connection.execute(
+                """
+                SELECT phrase, translation FROM collocations
+                WHERE word = ? COLLATE NOCASE
+                ORDER BY id
+                LIMIT 3
+                """,
+                (word,),
+            ).fetchall()
+        except sqlite3.Error:
+            return []
+        result: list[str] = []
+        for row in rows:
+            phrase = str(row["phrase"] or "").strip()
+            translation = str(row["translation"] or "").strip()
+            if phrase and translation:
+                result.append(f"{phrase}：{translation}")
+            elif phrase:
+                result.append(phrase)
+        return result
+
     def lookup(self, word: str) -> dict[str, str] | None:
         if self.connection is None:
             return None
-        for candidate in _lookup_candidates(word):
+        candidates = _lookup_candidates(word)
+        # ECDICT 的 exchange 字段生成的词形表优先于词形本身和后缀规则，
+        # 这样 running 会优先命中原形 run；但 be 动词等基础词保留自身释义。
+        lemma_candidates: list[str] = []
+        if word.strip().lower() not in {
+            "am", "is", "are", "was", "were", "be", "been", "being",
+            "have", "has", "had", "do", "does", "did",
+        }:
+            for candidate in list(candidates):
+                for lemma in self._lemma_candidates(candidate):
+                    if lemma not in lemma_candidates:
+                        lemma_candidates.append(lemma)
+        ordered_candidates = lemma_candidates + [
+            candidate for candidate in candidates if candidate not in lemma_candidates
+        ]
+
+        for candidate in ordered_candidates:
             try:
                 row = self.connection.execute(
                     """
@@ -672,11 +877,18 @@ class DictionaryStore:
             except sqlite3.Error:
                 return None
             if row is not None:
+                entry_word = str(row["word"] or candidate)
+                collocations = self._collocations(entry_word)
+                phrases = (
+                    "；".join(collocations[:2])
+                    if collocations
+                    else _format_phrases(row["phrases"])
+                )
                 return {
-                    "word": str(row["word"] or candidate),
+                    "word": entry_word,
                     "pos": str(row["pos"] or "—").strip() or "—",
                     "translation": _format_core_translation(row["translation"]),
-                    "phrases": _format_phrases(row["phrases"]),
+                    "phrases": phrases,
                 }
         return None
 
@@ -704,21 +916,36 @@ def count_words(text: str) -> int:
 
 
 class ReadingAssistant:
-    def __init__(self, page: ft.Page, articles: list[Article], dictionary: DictionaryStore, data_dir: Path):
+    def __init__(
+        self,
+        page: ft.Page,
+        articles: list[Article],
+        dictionary: DictionaryStore,
+        data_dir: Path,
+        progress_path: Path | None = None,
+        initial_answers: dict[str, str] | None = None,
+    ):
         self.page = page
         self.articles = articles
         self.dictionary = dictionary
         self.data_dir = data_dir
+        self.progress_path = progress_path
 
         self.article_by_id = {article.aid: article for article in articles}
         self.current_article_id = articles[0].aid if articles else None
-        self.answers: dict[str, str] = {}  # key: article_id::question_id -> A/B/C/D
+        # key: article_id::question_id -> A/B/C/D
+        self.answers: dict[str, str] = dict(initial_answers or {})
 
         self.word_card_holder: ft.Container | None = None
         self.progress_text: ft.Text | None = None
         self.shell: ft.Container | None = None
         self.questions_scroll: ft.Column | None = None
         self.mobile_scroll: ft.Column | None = None
+        self.article_scroll: ft.Column | None = None
+        self.article_scroll_offset = 0.0
+        self.mobile_scroll_offset = 0.0
+        self._scroll_guard = False
+        self.status_labels: dict[str, list[ft.Text]] = {}
 
     # ---- 页面骨架 ---------------------------------------------------------
 
@@ -738,6 +965,11 @@ class ReadingAssistant:
         self.page.controls.clear()
         self.mobile_scroll = None
         self.questions_scroll = None
+        self.article_scroll = None
+        self.status_labels = {}
+        self.article_scroll_offset = 0.0
+        self.mobile_scroll_offset = 0.0
+        self._scroll_guard = False
         main_area = self._build_main_area()
         if self._is_mobile():
             content: ft.Control = main_area
@@ -905,8 +1137,47 @@ class ReadingAssistant:
             ),
         )
 
+    def _article_answer_keys(self, article: Article) -> list[str]:
+        return [f"{article.aid}::{question.qid}" for question in article.questions]
+
+    def _article_status(self, article: Article) -> tuple[str, str, str]:
+        """返回 (图标, 文字, 颜色)，用于首页目录标记。"""
+        keys = self._article_answer_keys(article)
+        selected = [(key, self.answers[key]) for key in keys if key in self.answers]
+        if not selected:
+            return "⚪", "未做", MUTED
+        questions = {question.qid: question for question in article.questions}
+        for key, answer in selected:
+            qid = key.split("::", 1)[1]
+            question = questions.get(qid)
+            if question is not None and answer != question.answer:
+                return "❌", "完成错误", RED
+        if len(selected) == len(keys):
+            return "✅", "正确完成", GREEN
+        return "⚪", "未做", MUTED
+
+    def _register_status_label(self, article_id: str, label: ft.Text) -> None:
+        self.status_labels.setdefault(article_id, []).append(label)
+
+    def _refresh_article_markers(self, article_id: str) -> None:
+        article = self.article_by_id.get(article_id)
+        if article is None:
+            return
+        icon, text, color = self._article_status(article)
+        for label in self.status_labels.get(article_id, []):
+            label.value = f"{icon} {text}"
+            label.color = color
+
     def _build_nav_row(self, article: Article) -> ft.Control:
         active = article.aid == self.current_article_id
+        icon, status_text, status_color = self._article_status(article)
+        status_label = ft.Text(
+            f"{icon} {status_text}",
+            size=9.5,
+            color=status_color,
+            weight=ft.FontWeight.W_600,
+        )
+        self._register_status_label(article.aid, status_label)
 
         def on_click(_: ft.Event[ft.Container], target_id: str = article.aid) -> None:
             self._select_article(target_id)
@@ -927,6 +1198,7 @@ class ReadingAssistant:
                     ),
                     ft.Column(
                         controls=[
+                            status_label,
                             ft.Text(
                                 article.type,
                                 size=13,
@@ -997,18 +1269,33 @@ class ReadingAssistant:
         chips: list[ft.Control] = []
         for item in self.articles:
             active = item.aid == article.aid
+            icon, status_text, status_color = self._article_status(item)
+            status_label = ft.Text(
+                f"{icon} {status_text}",
+                size=8.5,
+                color="#E8F5EE" if active and status_color == GREEN else status_color,
+                weight=ft.FontWeight.W_600,
+            )
+            self._register_status_label(item.aid, status_label)
             chips.append(
                 ft.Container(
-                    padding=ft.Padding.symmetric(horizontal=10, vertical=6),
+                    padding=ft.Padding.symmetric(horizontal=10, vertical=5),
                     bgcolor=NAVY if active else "#EFE6D6",
                     border_radius=ft.BorderRadius.all(20),
                     on_click=lambda _, aid=item.aid: self._select_article(aid),
-                    content=ft.Text(
-                        f"{item.year} {item.set_name} · {item.type}",
-                        size=10.5,
-                        color="#FFFFFF" if active else GOLD_DARK,
-                        weight=ft.FontWeight.W_600,
-                        max_lines=1,
+                    content=ft.Column(
+                        controls=[
+                            status_label,
+                            ft.Text(
+                                f"{item.year} {item.set_name} · {item.type}",
+                                size=10.5,
+                                color="#FFFFFF" if active else GOLD_DARK,
+                                weight=ft.FontWeight.W_600,
+                                max_lines=1,
+                            ),
+                        ],
+                        spacing=0,
+                        tight=True,
                     ),
                 )
             )
@@ -1071,6 +1358,7 @@ class ReadingAssistant:
             spacing=10,
             scroll=ft.ScrollMode.AUTO,
             expand=True,
+            on_scroll=self._on_mobile_scroll,
         )
         return ft.Column(
             controls=[
@@ -1153,17 +1441,62 @@ class ReadingAssistant:
 
     def _build_article_panel(self, article: Article, mobile: bool = False) -> ft.Control:
         paragraphs: list[ft.Control] = []
-        for paragraph in passage_paragraphs(article.passage):
+        for index, paragraph in enumerate(passage_paragraphs(article.passage)):
+            translation = (
+                article.passage_translation[index]
+                if index < len(article.passage_translation)
+                else ""
+            )
+            translation_tile = ft.ExpansionTile(
+                title=ft.Text(
+                    "查看本段翻译",
+                    size=10.5,
+                    color=GOLD_DARK,
+                    weight=ft.FontWeight.W_600,
+                ),
+                controls=[
+                    ft.Container(
+                        bgcolor=AMBER_BG,
+                        border_radius=ft.BorderRadius.all(8),
+                        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+                        content=ft.Text(
+                            translation or "暂无翻译",
+                            size=12,
+                            color="#4B3B20",
+                        ),
+                    )
+                ],
+                tile_padding=ft.Padding.symmetric(horizontal=4, vertical=0),
+                controls_padding=ft.Padding.only(left=4, right=4, bottom=8),
+                maintain_state=False,
+            )
             paragraphs.append(
-                ft.Text(
-                    spans=self._build_word_spans(paragraph),
-                    size=16.5 if mobile else 17,
-                    color=INK,
-                    font_family="Georgia",
-                    selectable=False,
-                    text_align=ft.TextAlign.LEFT,
+                ft.Column(
+                    controls=[
+                        ft.Text(
+                            spans=self._build_word_spans(paragraph),
+                            size=16.5 if mobile else 17,
+                            color=INK,
+                            font_family="Georgia",
+                            selectable=False,
+                            text_align=ft.TextAlign.LEFT,
+                        ),
+                        translation_tile,
+                    ],
+                    spacing=2,
+                    tight=True,
                 )
             )
+
+        article_body = ft.Column(
+            controls=paragraphs,
+            spacing=12 if mobile else 13,
+            scroll=None if mobile else ft.ScrollMode.AUTO,
+            expand=not mobile,
+            on_scroll=None if mobile else self._on_article_scroll,
+        )
+        if not mobile:
+            self.article_scroll = article_body
 
         return ft.Container(
             expand=not mobile,
@@ -1208,12 +1541,7 @@ class ReadingAssistant:
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     ft.Divider(height=1, thickness=1, color=SOFT_LINE),
-                    ft.Column(
-                        controls=paragraphs,
-                        spacing=12 if mobile else 13,
-                        scroll=None if mobile else ft.ScrollMode.AUTO,
-                        expand=not mobile,
-                    ),
+                    article_body,
                 ],
                 spacing=10,
                 expand=not mobile,
@@ -1309,6 +1637,20 @@ class ReadingAssistant:
             )
             question_body = self.questions_scroll
 
+        reset_chip = ft.Container(
+            padding=ft.Padding.symmetric(horizontal=8, vertical=3),
+            bgcolor="#FBE9E7",
+            border=ft.Border.all(1, "#E3AAA5"),
+            border_radius=ft.BorderRadius.all(20),
+            on_click=lambda _: self._reset_article(article.aid),
+            content=ft.Text(
+                "重新做题",
+                size=9.5,
+                color=RED,
+                weight=ft.FontWeight.W_600,
+            ),
+        )
+
         return ft.Container(
             expand=not mobile,
             bgcolor=CARD,
@@ -1341,6 +1683,7 @@ class ReadingAssistant:
                                     color="#536D8C",
                                 ),
                             ),
+                            *([reset_chip] if self._has_answers(article) else []),
                             ft.Container(expand=True),
                             self.progress_text,
                         ],
@@ -1426,6 +1769,37 @@ class ReadingAssistant:
             border_radius=ft.BorderRadius.all(7),
             content=ft.Column(
                 controls=[
+                    ft.Container(
+                        bgcolor="#FFF8E6",
+                        border_radius=ft.BorderRadius.all(7),
+                        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+                        content=ft.Column(
+                            controls=[
+                                ft.Text(
+                                    "题目翻译",
+                                    size=10.5,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=GOLD_DARK,
+                                ),
+                                ft.Text(
+                                    question.stem_translation or "暂无翻译",
+                                    size=11.5,
+                                    color="#4B3B20",
+                                ),
+                                *[
+                                    ft.Text(
+                                        f"{letter}. "
+                                        f"{question.options_translation.get(letter) or '暂无翻译'}",
+                                        size=11.5,
+                                        color="#5A4A2A",
+                                    )
+                                    for letter in OPTION_LETTERS
+                                ],
+                            ],
+                            spacing=3,
+                            tight=True,
+                        ),
+                    ),
                     ft.Row(
                         controls=[
                             ft.Icon(ft.Icons.LIGHTBULB_OUTLINE, size=14, color=GOLD_DARK),
@@ -1441,7 +1815,7 @@ class ReadingAssistant:
                     ),
                     explanation_text,
                 ],
-                spacing=4,
+                spacing=6,
                 tight=True,
             ),
         )
@@ -1503,6 +1877,8 @@ class ReadingAssistant:
                 )
                 self.progress_text.value = f"已答 {answered_count}/{len(article.questions)}"
 
+            self._refresh_article_markers(article.aid)
+            self._save_answers()
             self.page.update()
             # 把“✅/❌ + 解析”这一块自动滚入可视区域，避免用户还要手动往下找。
             self.page.run_task(self._reveal_explanation, feedback_key)
@@ -1562,6 +1938,46 @@ class ReadingAssistant:
 
     # ---- 交互 -------------------------------------------------------------
 
+    def _has_answers(self, article: Article) -> bool:
+        return any(key in self.answers for key in self._article_answer_keys(article))
+
+    def _save_answers(self) -> None:
+        if self.progress_path is not None:
+            save_progress(self.progress_path, self.answers)
+
+    def _reset_article(self, article_id: str) -> None:
+        article = self.article_by_id.get(article_id)
+        if article is None:
+            return
+        for key in self._article_answer_keys(article):
+            self.answers.pop(key, None)
+        self._refresh_article_markers(article_id)
+        self._save_answers()
+        self.mount()
+
+    def _on_article_scroll(self, event: ft.OnScrollEvent) -> None:
+        if not self._scroll_guard:
+            self.article_scroll_offset = float(event.pixels or 0.0)
+
+    def _on_mobile_scroll(self, event: ft.OnScrollEvent) -> None:
+        if not self._scroll_guard:
+            self.mobile_scroll_offset = float(event.pixels or 0.0)
+
+    async def _restore_scroll_after_word(self, article_offset: float, mobile_offset: float) -> None:
+        """词卡显示/切换会触发布局重排，等一帧后恢复原阅读位置。"""
+        await asyncio.sleep(0.05)
+        try:
+            if self._is_mobile():
+                if self.mobile_scroll is not None:
+                    await self.mobile_scroll.scroll_to(offset=mobile_offset, duration=0)
+            elif self.article_scroll is not None:
+                await self.article_scroll.scroll_to(offset=article_offset, duration=0)
+        except Exception:
+            pass
+        # 避免恢复滚动产生的 on_scroll(0) 覆盖用户原来的位置。
+        await asyncio.sleep(0.25)
+        self._scroll_guard = False
+
     def _select_article(self, article_id: str) -> None:
         if article_id == self.current_article_id:
             self._hide_word_card()
@@ -1571,6 +1987,7 @@ class ReadingAssistant:
 
     def _show_word(self, word: str) -> None:
         entry = self.dictionary.lookup(word)
+        display_word = word
         if entry is None:
             pos = "—"
             translation = "暂未收录 · 可在本地词典中补充"
@@ -1581,6 +1998,8 @@ class ReadingAssistant:
             translation = entry["translation"]
             phrases = entry["phrases"]
             word_color = GOLD_DARK
+            if entry["word"].lower() != word.lower():
+                display_word = f"{word} → {entry['word']}"
 
         assert self.word_card_holder is not None
         card = self.word_card_holder.content
@@ -1593,7 +2012,7 @@ class ReadingAssistant:
             ft.Row(
                 controls=[
                     ft.Text(
-                        word,
+                        display_word,
                         size=16,
                         weight=ft.FontWeight.BOLD,
                         color=word_color,
@@ -1632,8 +2051,17 @@ class ReadingAssistant:
         ]
         if self.shell is not None:
             self.shell.on_click = self._handle_outside_tap
+
+        saved_article_offset = self.article_scroll_offset
+        saved_mobile_offset = self.mobile_scroll_offset
+        self._scroll_guard = True
         self.word_card_holder.visible = True
         self.page.update()
+        self.page.run_task(
+            self._restore_scroll_after_word,
+            saved_article_offset,
+            saved_mobile_offset,
+        )
 
     async def _reveal_explanation(self, feedback_key: ft.ScrollKey) -> None:
         """等布局展开后，把判分结果和解析一起滚动到可视区域。"""
@@ -1653,11 +2081,21 @@ class ReadingAssistant:
     def _hide_word_card(self, update: bool = True) -> None:
         if self.word_card_holder is None or not self.word_card_holder.visible:
             return
+        saved_article_offset = self.article_scroll_offset
+        saved_mobile_offset = self.mobile_scroll_offset
+        self._scroll_guard = True
         self.word_card_holder.visible = False
         if self.shell is not None:
             self.shell.on_click = None
         if update:
             self.page.update()
+            self.page.run_task(
+                self._restore_scroll_after_word,
+                saved_article_offset,
+                saved_mobile_offset,
+            )
+        else:
+            self._scroll_guard = False
 
     def _handle_outside_tap(self, _: ft.Event[ft.Container]) -> None:
         self._hide_word_card()
@@ -1759,24 +2197,61 @@ def show_error_page(page: ft.Page, title: str, detail: str) -> None:
     page.update()
 
 
+def _parse_saved_answers(raw: Any) -> dict[str, str]:
+    if not isinstance(raw, str) or not raw.strip():
+        return {}
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {
+        str(key): str(value).upper()
+        for key, value in data.items()
+        if isinstance(key, str)
+        and isinstance(value, str)
+        and value.upper() in OPTION_LETTERS
+    }
+
+
 def main(page: ft.Page) -> None:
     configure_page(page)
     data_dir = resolve_data_dir()
+    dictionary_path = resolve_dictionary_path()
+
+    progress_path: Path | None = None
+    initial_answers: dict[str, str] = {}
+    try:
+        progress_path = resolve_progress_path()
+        initial_answers = load_progress(progress_path)
+    except Exception:
+        # 极少数只读环境下不持久化，但不影响做题。
+        progress_path = None
+        initial_answers = {}
 
     try:
-        ensure_sample_data(data_dir)
+        ensure_sample_data(data_dir, dictionary_path)
         articles = load_articles(data_dir / "articles.json")
-        dictionary = DictionaryStore(data_dir / "dict.db")
+        dictionary = DictionaryStore(dictionary_path)
     except Exception as exc:
         detail = (
             f"数据目录：{data_dir}\n"
+            f"词典文件：{dictionary_path}\n"
             f"错误：{exc}\n\n"
             f"{traceback.format_exc(limit=4)}"
         )
         show_error_page(page, "数据加载失败", detail)
         return
 
-    app = ReadingAssistant(page, articles, dictionary, data_dir)
+    app = ReadingAssistant(
+        page,
+        articles,
+        dictionary,
+        data_dir,
+        progress_path=progress_path,
+        initial_answers=initial_answers,
+    )
     app.mount()
 
 
