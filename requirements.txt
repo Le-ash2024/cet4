@@ -1,0 +1,3 @@
+# Runtime dependency for the Flet app (pure Python).
+# Desktop build tooling is kept separately in requirements-desktop.txt.
+flet==1.0.5

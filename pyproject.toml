@@ -1,0 +1,24 @@
+[project]
+name = "cet4-reading-helper"
+version = "1.0.0"
+description = "Offline CET-4 reading practice assistant"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "flet==1.0.5",
+]
+
+[tool.flet]
+product = "四级阅读刷题助手"
+org = "com.cet4"
+bundle_id = "com.cet4.readinghelper"
+artifact = "CET4ReadingHelper"
+
+[tool.flet.app]
+module = "main"
+exclude = [
+    "dist",
+    "dist_portable",
+    "screenshots",
+    "README.md",
+    "requirements-desktop.txt",
+]

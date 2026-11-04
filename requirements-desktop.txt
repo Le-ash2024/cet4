@@ -1,0 +1,3 @@
+# Desktop-only tooling: native window runtime, flet CLI and PyInstaller.
+flet[desktop,cli]==1.0.5
+pyinstaller==6.22.3
