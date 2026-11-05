@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-四级阅读刷题助手（Windows / Android / Flet / 完全离线）
+四级阅读刷题助手（Windows / Android / Flet / 离线优先 + 题库热更新）
 =====================================================
 
 一、安装依赖
@@ -60,7 +60,14 @@ JDK 17 / Android SDK 的机器上执行：
 和 collocations 表。没有 --source 时会自动下载 ECDICT CSV。
 ECDICT: https://github.com/skywind3000/ECDICT (MIT License)
 
-五、实现要点
+五、题库热更新
+--------------
+在文件顶部把 UPDATE_URL 换成 articles.json 的公开直链，然后在 App 中点击
+“同步最新题库”。首次启动时会通过 StoragePaths 获取应用文档目录；下载的
+题库保存为 CET4ReadingHelper/articles.json。下次启动优先读取该文件，只
+有不存在或校验失败时才回退到内置 assets。
+
+六、实现要点
 ------------
 1. 每个英文单词由独立 TextSpan 绑定 on_click；点击词卡只更新卡片内容，不
    rebuild 整页，并记录/恢复 ScrollableControl 的 offset，阅读位置不会跳顶。
@@ -70,6 +77,8 @@ ECDICT: https://github.com/skywind3000/ECDICT (MIT License)
 4. 作答状态写入 FLET_APP_STORAGE_DATA（本地开发为 .progress/answers.json）；
    目录显示 ✅ 正确完成 / ❌ 完成错误 / ⚪ 未做，已完成文章可“重新做题”清空本篇记录。
 5. 答题没有提交按钮：点击 A/B/C/D 后立即判定、着色并展开解析并自动滚动。
+6. 热更新下载到应用文档目录，校验成功才原子替换；网络/格式失败只提示，不
+   影响当前已加载的题库和做题状态。
 """
 
 from __future__ import annotations
@@ -78,6 +87,7 @@ import asyncio
 import json
 import os
 import re
+import shutil
 import sqlite3
 import sys
 import traceback
@@ -86,6 +96,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import flet as ft
+import requests
 
 # ---------------------------------------------------------------------------
 # 常量与配色
@@ -93,6 +104,12 @@ import flet as ft
 
 APP_TITLE = "四级阅读刷题助手"
 APP_DIR = Path(__file__).resolve().parent
+
+# 把这里替换成你的 GitHub Raw / 静态服务器直链。
+# 例如：https://raw.githubusercontent.com/USER/REPO/main/assets/data/articles.json
+UPDATE_URL = "https://cdn.jsdelivr.net/gh/Le-ash2024/cet4@main/assets/data/articles.json"
+UPDATE_TIMEOUT = 30
+LOCAL_DATA_DIR_NAME = "CET4ReadingHelper"
 
 ARTICLE_TYPES = [
     "仔细阅读 Passage 1",
@@ -392,6 +409,45 @@ def resolve_dictionary_path() -> Path:
         if candidate.exists():
             return candidate
     return assets_db
+
+
+async def resolve_writable_data_dir(page: ft.Page) -> Path:
+    """
+    返回保存热更新题库的可写目录。
+
+    优先使用 Flet 的 get_application_documents_directory()（Android 应用文档
+    目录）；若服务不可用，再回退到 Flet 注入的私有存储环境变量。
+    """
+    try:
+        storage = ft.StoragePaths()
+        page.update()
+        docs = await asyncio.wait_for(
+            storage.get_application_documents_directory(),
+            timeout=5,
+        )
+        if docs:
+            target = Path(docs) / LOCAL_DATA_DIR_NAME
+            target.mkdir(parents=True, exist_ok=True)
+            return target
+    except Exception:
+        # 某些平台/测试环境没有 StoragePaths 服务，继续走环境变量回退。
+        pass
+
+    candidates: list[Path] = []
+    for env_name in ("FLET_APP_STORAGE_DATA", "FLET_APP_STORAGE_CACHE"):
+        env_value = os.environ.get(env_name)
+        if env_value:
+            candidates.append(Path(env_value) / LOCAL_DATA_DIR_NAME)
+    candidates.append(Path.home() / f".{LOCAL_DATA_DIR_NAME.lower()}")
+    candidates.append(APP_DIR / ".local_data")
+
+    for candidate in candidates:
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            return candidate
+        except OSError:
+            continue
+    return APP_DIR / ".local_data"
 
 
 def resolve_progress_path() -> Path:
@@ -694,6 +750,60 @@ def load_articles(path: Path) -> list[Article]:
     return articles
 
 
+def load_articles_with_fallback(
+    local_path: Path,
+    bundled_path: Path,
+) -> tuple[list[Article], Path, str]:
+    """
+    启动时优先读取本地热更新缓存；缓存不存在或损坏则回退到内置 assets。
+    返回 (文章列表, 实际使用的路径, 提示文字)。
+    """
+    if local_path.exists():
+        try:
+            return load_articles(local_path), local_path, ""
+        except (OSError, ValueError, UnicodeError) as exc:
+            warning = f"本地题库缓存无效，已使用内置题库：{exc}"
+            return load_articles(bundled_path), bundled_path, warning
+    return load_articles(bundled_path), bundled_path, ""
+
+
+def download_articles_to_cache(url: str, target: Path) -> list[Article]:
+    """
+    下载 articles.json，先写临时文件并用 load_articles 完整校验，
+    校验通过后才备份并原子替换本地缓存。
+    """
+    headers = {
+        "User-Agent": "CET4ReadingHelper/2.0 (offline study app)",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    response = requests.get(url, headers=headers, timeout=UPDATE_TIMEOUT)
+    response.raise_for_status()
+    payload = response.content
+    if not payload.strip():
+        raise ValueError("服务器返回了空内容。")
+    if len(payload) > 20 * 1024 * 1024:
+        raise ValueError("下载内容超过 20 MB，已拒绝写入。")
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = target.with_name(target.name + ".download")
+    try:
+        temp_path.write_bytes(payload)
+        articles = load_articles(temp_path)
+        if target.exists():
+            try:
+                shutil.copy2(target, target.with_name(target.name + ".bak"))
+            except OSError:
+                pass
+        temp_path.replace(target)
+        return articles
+    finally:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def group_articles(articles: Iterable[Article]) -> list[tuple[str, list[tuple[tuple[str, str], list[Article]]]]]:
     """按年份 -> 套数 -> 题型组织数据（返回有序嵌套结构，供左侧导航渲染）。"""
     years: dict[str, dict[tuple[str, str], list[Article]]] = {}
@@ -924,12 +1034,19 @@ class ReadingAssistant:
         data_dir: Path,
         progress_path: Path | None = None,
         initial_answers: dict[str, str] | None = None,
+        local_articles_path: Path | None = None,
+        sync_message: str = "",
     ):
         self.page = page
         self.articles = articles
         self.dictionary = dictionary
         self.data_dir = data_dir
         self.progress_path = progress_path
+        self.local_articles_path = local_articles_path
+        self.sync_in_progress = False
+        self.sync_message = sync_message or "题库支持在线同步"
+        self.sync_button: ft.Control | None = None
+        self.sync_status_text: ft.Text | None = None
 
         self.article_by_id = {article.aid: article for article in articles}
         self.current_article_id = articles[0].aid if articles else None
@@ -993,6 +1110,42 @@ class ReadingAssistant:
         # 词卡，而卡片自身的 GestureDetector 优先级更高，点卡片不会误关闭。
         self.page.add(self.shell)
         self.page.update()
+
+    def _sync_status_color(self) -> str:
+        message = self.sync_message
+        if message.startswith("✅"):
+            return GREEN
+        if message.startswith("❌"):
+            return RED
+        if message.startswith(("⚠️", "正在")):
+            return GOLD
+        return "#9FB3CC"
+
+    def _build_sync_button(self, compact: bool) -> ft.Control:
+        button = ft.TextButton(
+            content="同步题库" if compact else "同步最新题库",
+            icon=ft.Icons.SYNC,
+            icon_color=GOLD,
+            tooltip="同步最新题库",
+            on_click=self._on_sync_click,
+            disabled=self.sync_in_progress,
+            style=ft.ButtonStyle(
+                color=GOLD,
+                overlay_color="#2A4264",
+            ),
+        )
+        self.sync_button = button
+        return button
+
+    def _build_sync_status_text(self) -> ft.Text:
+        self.sync_status_text = ft.Text(
+            self.sync_message,
+            size=9.5,
+            color=self._sync_status_color(),
+            max_lines=3,
+            overflow=ft.TextOverflow.ELLIPSIS,
+        )
+        return self.sync_status_text
 
     def _build_sidebar(self) -> ft.Control:
         groups = group_articles(self.articles)
@@ -1073,7 +1226,7 @@ class ReadingAssistant:
                                         color="#FFFFFF",
                                     ),
                                     ft.Text(
-                                        "刷题助手 · 离线版",
+                                        "刷题助手 · 本地优先",
                                         size=11,
                                         color="#AFC0D6",
                                     ),
@@ -1108,6 +1261,20 @@ class ReadingAssistant:
                         ],
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
+                    ft.Container(
+                        margin=ft.Margin.only(top=2),
+                        padding=ft.Padding.symmetric(horizontal=10, vertical=8),
+                        bgcolor=NAVY_SOFT,
+                        border_radius=ft.BorderRadius.all(10),
+                        content=ft.Column(
+                            controls=[
+                                self._build_sync_button(compact=False),
+                                self._build_sync_status_text(),
+                            ],
+                            spacing=2,
+                            tight=True,
+                        ),
+                    ),
                     ft.Divider(height=1, thickness=1, color=NAVY_LINE),
                     ft.Column(
                         controls=nav_controls,
@@ -1122,7 +1289,7 @@ class ReadingAssistant:
                             controls=[
                                 ft.Icon(ft.Icons.LOCK_OUTLINE, size=13, color="#8FA3BE"),
                                 ft.Text(
-                                    "数据保存在本地 · 全程离线",
+                                    "数据本地优先 · 支持在线同步",
                                     size=10,
                                     color="#8FA3BE",
                                 ),
@@ -1307,7 +1474,7 @@ class ReadingAssistant:
             content=ft.Row(
                 controls=[
                     ft.Icon(ft.Icons.LOCK_OUTLINE, size=12, color=GREEN),
-                    ft.Text("离线", size=9.5, color=GREEN),
+                    ft.Text("本地优先", size=9.5, color=GREEN),
                 ],
                 spacing=3,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -1328,10 +1495,12 @@ class ReadingAssistant:
                                 color=INK,
                             ),
                             ft.Container(expand=True),
+                            self._build_sync_button(compact=True),
                             offline,
                         ],
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
+                    self._build_sync_status_text(),
                     ft.Text(
                         f"{article.year} 年 · {article.month} 月 · {article.set_name}",
                         size=10.5,
@@ -1424,7 +1593,7 @@ class ReadingAssistant:
                             controls=[
                                 ft.Icon(ft.Icons.LOCK_OUTLINE, size=13, color=GREEN),
                                 ft.Text(
-                                    "完全离线",
+                                    "本地优先",
                                     size=10.5,
                                     color=GREEN,
                                     weight=ft.FontWeight.W_600,
@@ -1985,6 +2154,63 @@ class ReadingAssistant:
         self.current_article_id = article_id
         self.mount()
 
+    def _set_sync_status(self, message: str, color: str) -> None:
+        self.sync_message = message
+        if self.sync_status_text is not None:
+            self.sync_status_text.value = message
+            self.sync_status_text.color = color
+        if self.sync_button is not None:
+            self.sync_button.disabled = self.sync_in_progress
+        self.page.update()
+
+    async def _on_sync_click(self, _: ft.Event[ft.Control]) -> None:
+        if self.sync_in_progress:
+            return
+
+        url = UPDATE_URL.strip()
+        if not url.startswith(("http://", "https://")) or url == "https://...":
+            self._set_sync_status("⚠️ 请先在 main.py 中填写 UPDATE_URL", GOLD_DARK)
+            return
+        if self.local_articles_path is None:
+            self._set_sync_status("❌ 无法定位本地可写目录", RED)
+            return
+
+        self.sync_in_progress = True
+        self._set_sync_status("正在更新题库...", GOLD_DARK)
+
+        try:
+            articles = await asyncio.to_thread(
+                download_articles_to_cache,
+                url,
+                self.local_articles_path,
+            )
+            if not articles:
+                raise ValueError("下载的题库为空。")
+
+            previous_id = self.current_article_id
+            self.articles = articles
+            self.article_by_id = {article.aid: article for article in articles}
+            self.current_article_id = (
+                previous_id
+                if previous_id in self.article_by_id
+                else articles[0].aid
+            )
+            self.sync_in_progress = False
+            self.sync_message = f"✅ 更新成功，共 {len(articles)} 篇"
+            self.mount()
+        except requests.RequestException:
+            self.sync_in_progress = False
+            self._set_sync_status("❌ 更新失败，请检查网络", RED)
+        except ValueError:
+            self.sync_in_progress = False
+            self._set_sync_status("❌ 更新失败：题库格式不正确", RED)
+        except OSError:
+            self.sync_in_progress = False
+            self._set_sync_status("❌ 更新失败：无法保存题库", RED)
+        except Exception:
+            self.sync_in_progress = False
+            self._set_sync_status("❌ 更新失败，请稍后重试", RED)
+
     def _show_word(self, word: str) -> None:
         entry = self.dictionary.lookup(word)
         display_word = word
@@ -2215,10 +2441,36 @@ def _parse_saved_answers(raw: Any) -> dict[str, str]:
     }
 
 
-def main(page: ft.Page) -> None:
+async def main(page: ft.Page) -> None:
     configure_page(page)
     data_dir = resolve_data_dir()
     dictionary_path = resolve_dictionary_path()
+
+    # 先把一个轻量加载页挂到 page 上，StoragePaths 服务才能完成注册并响应
+    # get_application_documents_directory()；随后会被正式界面替换。
+    page.add(
+        ft.Container(
+            expand=True,
+            alignment=ft.Alignment.CENTER,
+            content=ft.Column(
+                controls=[
+                    ft.ProgressRing(width=28, height=28, stroke_width=3, color=GOLD_DARK),
+                    ft.Text("正在加载题库...", size=12, color=MUTED),
+                ],
+                spacing=10,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                tight=True,
+            ),
+        )
+    )
+    page.update()
+
+    try:
+        writable_dir = await resolve_writable_data_dir(page)
+    except Exception:
+        writable_dir = APP_DIR / ".local_data"
+        writable_dir.mkdir(parents=True, exist_ok=True)
+    local_articles_path = writable_dir / "articles.json"
 
     progress_path: Path | None = None
     initial_answers: dict[str, str] = {}
@@ -2230,13 +2482,18 @@ def main(page: ft.Page) -> None:
         progress_path = None
         initial_answers = {}
 
+    sync_message = ""
     try:
         ensure_sample_data(data_dir, dictionary_path)
-        articles = load_articles(data_dir / "articles.json")
+        articles, active_articles_path, sync_message = load_articles_with_fallback(
+            local_articles_path,
+            data_dir / "articles.json",
+        )
         dictionary = DictionaryStore(dictionary_path)
     except Exception as exc:
         detail = (
-            f"数据目录：{data_dir}\n"
+            f"内置数据目录：{data_dir}\n"
+            f"本地缓存目录：{writable_dir}\n"
             f"词典文件：{dictionary_path}\n"
             f"错误：{exc}\n\n"
             f"{traceback.format_exc(limit=4)}"
@@ -2248,9 +2505,11 @@ def main(page: ft.Page) -> None:
         page,
         articles,
         dictionary,
-        data_dir,
+        active_articles_path.parent,
         progress_path=progress_path,
         initial_answers=initial_answers,
+        local_articles_path=local_articles_path,
+        sync_message=sync_message,
     )
     app.mount()
 
