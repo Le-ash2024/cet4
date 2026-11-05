@@ -17,7 +17,8 @@ Flet + Python 的四级阅读刷题应用，支持 Windows 和 Android。默认�
   - ⚪ 未做
   - ✅ 正确完成（全对）
   - ❌ 完成错误（有错题）
-- 已作答文章可以点“重新做题”清空本篇记录。
+- 阅读页顶部（桌面右上角、手机题头信息行）有“重新做题”按钮，清空本篇记录并恢复未作答状态。
+- 侧边栏目录和手机横向文章条会保存滚动 offset，切换文章/点词后不会回弹到顶部或最左侧。
 - 桌面侧边栏和手机顶栏都有“同步最新题库”入口；更新成功后立即刷新列表，
   失败不会影响已有题库和做题。
 - 手机窄屏使用单列阅读布局，桌面使用左侧题库导航。
@@ -29,6 +30,9 @@ cet4_reading_helper/
 ├─ main.py
 ├─ extractor.py                  # 真题文本 → JSON 的桌面提取工具
 ├─ extractor_sample.txt          # 提取工具输入格式示例
+├─ batch_docx_import.py          # 批量导入桌面 Word 真题
+├─ update_dict.py                # 将词典升级为 45,000 词学术核心词库
+├─ requirements-batch.txt        # 批处理工具依赖（python-docx）
 ├─ pyproject.toml
 ├─ requirements.txt              # Android/纯运行依赖（flet + requests）
 ├─ requirements-desktop.txt      # 桌面打包工具
@@ -39,7 +43,7 @@ cet4_reading_helper/
 │  └─ apply_sample_translations.py
 ├─ assets/
 │  ├─ icon.png
-│  ├─ dict.db                    # 7,111 个核心词 + 25,118 条词形
+│  ├─ dict.db                    # 45,000 个核心词 + 155,123 条词形
 │  └─ data/
 │     └─ articles.json
 └─ screenshots/
@@ -88,20 +92,23 @@ python -m pip install -r requirements.txt
 
 ## 离线词典
 
-`assets/dict.db` 由 `scripts/build_ecdict.py` 生成，包含：
+`assets/dict.db` 当前由 `update_dict.py` 从 ECDICT 生成，约 **14.7 MB**：
 
-- `dictionary(word, pos, translation, phrases, phonetic, exchange, tag, ...)`
-- `word_forms(form, lemma)`：如 `running → run`、`habits → habit`
-- `collocations(word, phrase, translation)`：英文固定搭配及中文释义
+- `dictionary`：**45,000 个词条**
+- `word_forms`：**155,123 条词形**（如 `running → run`、`habits → habit`）
+- `collocations`：54 条带中文释义的固定搭配
+- 覆盖 CET4/CET6、考研、托福、雅思、GRE 核心词，并按 BNC/COCA 词频补足
 
-重新生成：
+重新生成学术词库：
 
 ```powershell
-python scripts/build_ecdict.py --source path/to/ecdict.csv
+python update_dict.py --source build/ecdict.csv --target 45000
 ```
 
-不传 `--source` 时脚本会自动下载 ECDICT。词典来源：
+脚本会保留原表结构，原库自动备份为 `dict.db.bak`。ECDICT 来源：
 [skywind3000/ECDICT](https://github.com/skywind3000/ECDICT)（MIT License）。
+
+`scripts/build_ecdict.py` 是早期 7k 词小库的构建脚本，仍可用于生成轻量示例库。
 
 词典查询优先走 ECDICT 词形表，再回退到规则化的复数/过去式/进行时还原。
 
@@ -148,6 +155,40 @@ get_application_documents_directory()/CET4ReadingHelper/articles.json
 - `requirements.txt`
 - `requirements-desktop.txt`
 - `pyproject.toml`
+
+## 批量导入 Word 真题
+
+`batch_docx_import.py` 会递归读取桌面“四级阅读”文件夹下的 `.docx`，复用
+`extractor.parse_article_text()` 解析并追加到 `assets/data/articles.json`。
+
+安装依赖：
+
+```powershell
+python -m pip install -r requirements-batch.txt
+```
+
+运行（默认自动找桌面“四级阅读”）：
+
+```powershell
+python batch_docx_import.py
+```
+
+或显式指定：
+
+```powershell
+python batch_docx_import.py --folder "C:\Users\你\Desktop\四级阅读" --dry-run
+python batch_docx_import.py --folder "C:\Users\你\Desktop\四级阅读"
+```
+
+处理规则：
+
+- Word 段落之间用空行连接，保持正文和“段落翻译”的分段结构。
+- 优先使用文档里的“文章ID”；冲突时尝试文件名；仍冲突则自动加 `_docx` 后缀。
+- 正文和题目都相同的文件默认跳过，避免重复运行或重复 Word 文件造成重复题库；
+  需要强制导入时可加 `--allow-duplicate-content`。
+- 单个 Word 解析失败只打印文件名并跳过，不中断整批。
+- 写入前会备份 `articles.json.bak`，再用临时文件原子替换。
+- `--dry-run` 只解析不写盘，建议第一次先跑它。
 
 ## 真题提取器（Windows 桌面工具）
 

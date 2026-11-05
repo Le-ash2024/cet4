@@ -21,7 +21,7 @@ Windows 桌面开发/打包环境（包含 flet desktop、CLI 和 PyInstaller）
     ├── main.py
     ├── assets/
     │   ├── icon.png
-    │   ├── dict.db                 # ECDICT 四六级离线词典
+    │   ├── dict.db                 # 45,000 词学术核心离线词典
     │   └── data/
     │       └── articles.json       # 文章、题目、答案、解析、翻译
     └── scripts/build_ecdict.py
@@ -1047,6 +1047,7 @@ class ReadingAssistant:
         self.sync_message = sync_message or "题库支持在线同步"
         self.sync_button: ft.Control | None = None
         self.sync_status_text: ft.Text | None = None
+        self.reset_button: ft.Control | None = None
 
         self.article_by_id = {article.aid: article for article in articles}
         self.current_article_id = articles[0].aid if articles else None
@@ -1062,6 +1063,11 @@ class ReadingAssistant:
         self.article_scroll_offset = 0.0
         self.mobile_scroll_offset = 0.0
         self._scroll_guard = False
+        self.sidebar_scroll: ft.Column | None = None
+        self.chips_scroll: ft.Row | None = None
+        self.sidebar_scroll_offset = 0.0
+        self.chips_scroll_offset = 0.0
+        self._nav_scroll_guard = False
         self.status_labels: dict[str, list[ft.Text]] = {}
 
     # ---- 页面骨架 ---------------------------------------------------------
@@ -1079,10 +1085,14 @@ class ReadingAssistant:
         return bool(width and width < 760)
 
     def mount(self) -> None:
+        # 重建会替换目录控件，先挡住重建过程中产生的 0 偏移事件。
+        self._nav_scroll_guard = True
         self.page.controls.clear()
         self.mobile_scroll = None
         self.questions_scroll = None
         self.article_scroll = None
+        self.sidebar_scroll = None
+        self.chips_scroll = None
         self.status_labels = {}
         self.article_scroll_offset = 0.0
         self.mobile_scroll_offset = 0.0
@@ -1110,6 +1120,65 @@ class ReadingAssistant:
         # 词卡，而卡片自身的 GestureDetector 优先级更高，点卡片不会误关闭。
         self.page.add(self.shell)
         self.page.update()
+        self.page.run_task(self._restore_nav_scroll)
+
+    def _build_reset_button(self, compact: bool = False) -> ft.Control:
+        article = self.article_by_id.get(self.current_article_id or "")
+        button = ft.OutlinedButton(
+            content="重新做题",
+            icon=ft.Icons.RESTART_ALT,
+            tooltip="清空本篇答题记录，恢复未作答状态",
+            on_click=lambda _: self._reset_article(self.current_article_id or ""),
+            disabled=not (article is not None and self._has_answers(article)),
+            height=32 if compact else 36,
+            style=ft.ButtonStyle(
+                color=RED,
+                side=ft.BorderSide(1, "#E3AAA5"),
+                padding=ft.Padding.symmetric(
+                    horizontal=8 if compact else 12,
+                    vertical=3,
+                ),
+            ),
+        )
+        self.reset_button = button
+        return button
+
+    def _refresh_reset_button(self) -> None:
+        article = self.article_by_id.get(self.current_article_id or "")
+        if self.reset_button is not None:
+            self.reset_button.disabled = not (
+                article is not None and self._has_answers(article)
+            )
+
+    def _on_sidebar_scroll(self, event: ft.OnScrollEvent) -> None:
+        if not self._nav_scroll_guard:
+            self.sidebar_scroll_offset = float(event.pixels or 0.0)
+
+    def _on_chips_scroll(self, event: ft.OnScrollEvent) -> None:
+        if not self._nav_scroll_guard:
+            self.chips_scroll_offset = float(event.pixels or 0.0)
+
+    async def _scroll_nav_to_saved(self) -> None:
+        try:
+            if self.sidebar_scroll is not None and self.sidebar_scroll_offset:
+                await self.sidebar_scroll.scroll_to(
+                    offset=self.sidebar_scroll_offset,
+                    duration=0,
+                )
+            if self.chips_scroll is not None and self.chips_scroll_offset:
+                await self.chips_scroll.scroll_to(
+                    offset=self.chips_scroll_offset,
+                    duration=0,
+                )
+        except Exception:
+            pass
+
+    async def _restore_nav_scroll(self) -> None:
+        """页面重建后恢复目录列表/文章横向条的滚动位置。"""
+        await asyncio.sleep(0.05)
+        await self._scroll_nav_to_saved()
+        await asyncio.sleep(0.2)
+        self._nav_scroll_guard = False
 
     def _sync_status_color(self) -> str:
         message = self.sync_message
@@ -1276,12 +1345,7 @@ class ReadingAssistant:
                         ),
                     ),
                     ft.Divider(height=1, thickness=1, color=NAVY_LINE),
-                    ft.Column(
-                        controls=nav_controls,
-                        spacing=4,
-                        scroll=ft.ScrollMode.AUTO,
-                        expand=True,
-                    ),
+                    self._build_sidebar_scroll(nav_controls),
                     ft.Divider(height=1, thickness=1, color=NAVY_LINE),
                     ft.Container(
                         padding=ft.Padding.only(top=12),
@@ -1303,6 +1367,16 @@ class ReadingAssistant:
                 expand=True,
             ),
         )
+
+    def _build_sidebar_scroll(self, nav_controls: list[ft.Control]) -> ft.Column:
+        self.sidebar_scroll = ft.Column(
+            controls=nav_controls,
+            spacing=4,
+            scroll=ft.ScrollMode.AUTO,
+            on_scroll=self._on_sidebar_scroll,
+            expand=True,
+        )
+        return self.sidebar_scroll
 
     def _article_answer_keys(self, article: Article) -> list[str]:
         return [f"{article.aid}::{question.qid}" for question in article.questions]
@@ -1481,6 +1555,13 @@ class ReadingAssistant:
             ),
         )
 
+        self.chips_scroll = ft.Row(
+            controls=chips,
+            spacing=7,
+            scroll=ft.ScrollMode.AUTO,
+            on_scroll=self._on_chips_scroll,
+        )
+
         topbar = ft.Container(
             padding=ft.Padding.only(left=14, right=14, top=12, bottom=10),
             border=ft.Border.only(bottom=ft.BorderSide(1, LINE)),
@@ -1501,17 +1582,20 @@ class ReadingAssistant:
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     self._build_sync_status_text(),
-                    ft.Text(
-                        f"{article.year} 年 · {article.month} 月 · {article.set_name}",
-                        size=10.5,
-                        color=GOLD_DARK,
-                        weight=ft.FontWeight.W_600,
-                    ),
                     ft.Row(
-                        controls=chips,
-                        spacing=7,
-                        scroll=ft.ScrollMode.AUTO,
+                        controls=[
+                            ft.Text(
+                                f"{article.year} 年 · {article.month} 月 · {article.set_name}",
+                                size=10.5,
+                                color=GOLD_DARK,
+                                weight=ft.FontWeight.W_600,
+                            ),
+                            ft.Container(expand=True),
+                            self._build_reset_button(compact=True),
+                        ],
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
+                    self.chips_scroll,
                 ],
                 spacing=6,
                 tight=True,
@@ -1584,6 +1668,7 @@ class ReadingAssistant:
                         tight=True,
                     ),
                     ft.Container(expand=True),
+                    self._build_reset_button(compact=False),
                     ft.Container(
                         padding=ft.Padding.symmetric(horizontal=12, vertical=7),
                         bgcolor="#EBF3EA",
@@ -1806,20 +1891,6 @@ class ReadingAssistant:
             )
             question_body = self.questions_scroll
 
-        reset_chip = ft.Container(
-            padding=ft.Padding.symmetric(horizontal=8, vertical=3),
-            bgcolor="#FBE9E7",
-            border=ft.Border.all(1, "#E3AAA5"),
-            border_radius=ft.BorderRadius.all(20),
-            on_click=lambda _: self._reset_article(article.aid),
-            content=ft.Text(
-                "重新做题",
-                size=9.5,
-                color=RED,
-                weight=ft.FontWeight.W_600,
-            ),
-        )
-
         return ft.Container(
             expand=not mobile,
             bgcolor=CARD,
@@ -1852,7 +1923,6 @@ class ReadingAssistant:
                                     color="#536D8C",
                                 ),
                             ),
-                            *([reset_chip] if self._has_answers(article) else []),
                             ft.Container(expand=True),
                             self.progress_text,
                         ],
@@ -2047,8 +2117,11 @@ class ReadingAssistant:
                 self.progress_text.value = f"已答 {answered_count}/{len(article.questions)}"
 
             self._refresh_article_markers(article.aid)
+            self._refresh_reset_button()
             self._save_answers()
+            self._nav_scroll_guard = True
             self.page.update()
+            self.page.run_task(self._restore_nav_scroll)
             # 把“✅/❌ + 解析”这一块自动滚入可视区域，避免用户还要手动往下找。
             self.page.run_task(self._reveal_explanation, feedback_key)
 
@@ -2143,9 +2216,11 @@ class ReadingAssistant:
                 await self.article_scroll.scroll_to(offset=article_offset, duration=0)
         except Exception:
             pass
+        await self._scroll_nav_to_saved()
         # 避免恢复滚动产生的 on_scroll(0) 覆盖用户原来的位置。
         await asyncio.sleep(0.25)
         self._scroll_guard = False
+        self._nav_scroll_guard = False
 
     def _select_article(self, article_id: str) -> None:
         if article_id == self.current_article_id:
@@ -2281,6 +2356,7 @@ class ReadingAssistant:
         saved_article_offset = self.article_scroll_offset
         saved_mobile_offset = self.mobile_scroll_offset
         self._scroll_guard = True
+        self._nav_scroll_guard = True
         self.word_card_holder.visible = True
         self.page.update()
         self.page.run_task(
@@ -2310,6 +2386,7 @@ class ReadingAssistant:
         saved_article_offset = self.article_scroll_offset
         saved_mobile_offset = self.mobile_scroll_offset
         self._scroll_guard = True
+        self._nav_scroll_guard = True
         self.word_card_holder.visible = False
         if self.shell is not None:
             self.shell.on_click = None
@@ -2322,6 +2399,7 @@ class ReadingAssistant:
             )
         else:
             self._scroll_guard = False
+            self._nav_scroll_guard = False
 
     def _handle_outside_tap(self, _: ft.Event[ft.Container]) -> None:
         self._hide_word_card()
