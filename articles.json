@@ -1,0 +1,127 @@
+[
+  {
+    "id": "2024_12_set1_p1",
+    "year": "2024",
+    "month": "12",
+    "set": "第一套",
+    "type": "仔细阅读 Passage 1",
+    "passage": "In the past, reading was often seen as a quiet hobby. Today, however, it has become a valuable habit that can improve both language skills and general knowledge. Many students believe that they need a special environment to focus on a book, but research suggests that a simple daily routine matters more than a perfect setting.\n\nA study of college students found that those who read for twenty minutes each day were better able to remember information than those who read for two hours once a week. The reason is not difficult to understand. Regular practice trains attention and makes the brain more patient with complex ideas. Even a short session can be useful if it is consistent.\n\nDigital screens have changed the way we read. We can find information quickly, but we often move from one page to another without thinking deeply. This habit can weaken memory. To benefit from reading, we need to slow down and give the text our full attention. One practical method is to put the phone in another room and keep a notebook nearby. Writing down a few questions before reading can also help us stay focused.\n\nReading is not only a skill for exams. It is a way to understand people and the world. A person who reads widely is more likely to notice different opinions and to express ideas clearly. The benefit does not appear overnight, but it grows with practice. If you want to build a lasting habit, start with a small goal. Ten pages a day is enough. The important thing is to make reading part of your routine, not a task that you complete once and forget.",
+    "questions": [
+      {
+        "id": "q1",
+        "stem": "What does the study mentioned in the passage suggest?",
+        "options": {
+          "A": "Reading for two hours once a week is the most effective way.",
+          "B": "A short but regular reading routine works better.",
+          "C": "Students can only focus in a perfect environment.",
+          "D": "Digital reading always weakens a person's memory."
+        },
+        "answer": "B",
+        "explanation": "原文明确指出：每天阅读二十分钟的学生，比每周一次读两小时的学生更能记住信息，并强调“regular practice”和“consistent”。因此 B（短时间但规律的阅读更有效）正确。A 与原文对比关系相反；C 把“许多学生以为需要完美环境”误当成研究结论，原文反而说日常习惯比完美环境更重要；D 把“可能削弱记忆”夸大成“总是”，也不正确。",
+        "stem_translation": "文中提到的研究说明了什么？",
+        "options_translation": {
+          "A": "每周一次阅读两小时是最有效的方法。",
+          "B": "短时间但规律的阅读习惯效果更好。",
+          "C": "学生只有在完美的环境中才能集中注意力。",
+          "D": "数字阅读总是会削弱一个人的记忆。"
+        }
+      },
+      {
+        "id": "q2",
+        "stem": "Why does the author mention putting the phone in another room?",
+        "options": {
+          "A": "To prove that phones are useless for study.",
+          "B": "To give a practical way to read with full attention.",
+          "C": "To suggest that students should buy more notebooks.",
+          "D": "To explain why digital reading is popular."
+        },
+        "answer": "B",
+        "explanation": "第三段先指出数字屏幕使人容易快速跳读、思考变浅，随后给出具体做法：把手机放到另一个房间、在身边放笔记本，以便“slow down and give the text our full attention”。因此 B 正确。A 说手机对学习毫无用处，过于绝对；C 把笔记本当成建议的目的，属于过度推断；D 与原文对数字阅读的担忧相反。",
+        "stem_translation": "作者为什么提到把手机放到另一个房间？",
+        "options_translation": {
+          "A": "为了证明手机对学习毫无用处。",
+          "B": "为了给出一种让人全神贯注阅读的实用方法。",
+          "C": "为了建议学生多买一些笔记本。",
+          "D": "为了解释数字阅读为什么流行。"
+        }
+      },
+      {
+        "id": "q3",
+        "stem": "What is the main message of the passage?",
+        "options": {
+          "A": "Reading should be limited to exam preparation.",
+          "B": "Digital screens should be avoided completely.",
+          "C": "Reading is a lasting habit that grows with consistent practice.",
+          "D": "Ten pages a day is too small a goal."
+        },
+        "answer": "C",
+        "explanation": "全文从“阅读习惯的价值”写到“规律练习的作用”，最后落脚到“make reading part of your routine”，强调阅读是一种可以长期培养、随持续练习而增长的习惯，故 C 正确。A 与“Reading is not only a skill for exams”相矛盾；B 原文只说需要放慢速度、集中注意力，并未要求完全避开屏幕；D 原文说“Ten pages a day is enough”，并不是说目标太小。",
+        "stem_translation": "这篇文章的主旨是什么？",
+        "options_translation": {
+          "A": "阅读应仅限于备考。",
+          "B": "应完全避免使用电子屏幕。",
+          "C": "阅读是一种会随着持续练习而成长的长期习惯。",
+          "D": "每天十页的目标太小了。"
+        }
+      }
+    ],
+    "passage_translation": [
+      "过去，阅读常被视为一种安静的爱好。然而今天，它已成为一种宝贵的习惯，能够同时提高语言能力和常识。许多学生认为他们需要一个特别的环境才能专心读书，但研究表明，简单的日常习惯比完美的环境更重要。",
+      "一项针对大学生的研究发现，每天阅读二十分钟的人，比每周一次阅读两小时的人更能记住信息。原因并不难理解。规律的练习能训练注意力，并让大脑更有耐心地处理复杂观点。即使时间很短，只要坚持下去也会有效。",
+      "电子屏幕改变了我们的阅读方式。我们能快速找到信息，但常常从一页跳到另一页，没有深入思考。这种习惯会削弱记忆。要从阅读中受益，我们需要放慢速度，把全部注意力放在文本上。一个实用的方法是把手机放到另一个房间，并在身边放一本笔记本。阅读前写下几个问题，也能帮助我们保持专注。",
+      "阅读不仅是一项考试技能。它是理解他人和世界的一种方式。广泛阅读的人更可能注意到不同的观点，并清晰地表达自己的想法。阅读的益处不会一夜之间出现，而会随着练习不断增长。如果你想养成持久的习惯，先从小目标开始。每天十页就够了。重要的是让阅读成为日常的一部分，而不是完成一次就忘记的任务。"
+    ]
+  },
+  {
+    "id": "2025_06_set1_p1",
+    "year": "2025",
+    "month": "06",
+    "set": "第一套",
+    "type": "仔细阅读 Passage 1",
+    "passage": "Sleep is often the first thing students give up when exams come. They stay up late, drink coffee, and try to remember more information. However, research shows that sleep is not a waste of time. While we sleep, the brain organizes what we have learned during the day. Without enough sleep, attention and memory both suffer.\n\nA simple change can make a difference. Going to bed at the same time every night helps the body build a steady rhythm. It is also useful to stop looking at screens an hour before bed. Students who follow these habits often feel more energetic and think more clearly. Good sleep is not a luxury; it is part of effective study.",
+    "passage_translation": [
+      "考试来临时，睡眠往往是学生最先放弃的东西。他们熬夜、喝咖啡，试图记住更多信息。然而，研究表明睡眠并不是浪费时间。睡觉时，大脑会整理白天学到的内容。睡眠不足时，注意力和记忆力都会受到影响。",
+      "一个简单的改变就能带来不同。每天晚上在同一时间上床睡觉，有助于身体建立稳定的节律。睡前一小时停止看屏幕也很有用。养成这些习惯的学生通常更有精力，思维也更清晰。良好睡眠不是奢侈品，而是有效学习的一部分。"
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "stem": "What happens in the brain during sleep according to the passage?",
+        "options": {
+          "A": "It forgets unnecessary information.",
+          "B": "It organizes what was learned during the day.",
+          "C": "It stops working completely.",
+          "D": "It produces more coffee."
+        },
+        "answer": "B",
+        "explanation": "第二句明确指出，睡觉时大脑会整理白天学到的内容，因此 B 正确。A 将“整理”误写成“遗忘”；C 过于绝对；D 与常识和原文无关。",
+        "stem_translation": "根据文章，睡觉时大脑会发生什么？",
+        "options_translation": {
+          "A": "它会忘记不必要的信息。",
+          "B": "它会整理白天学到的内容。",
+          "C": "它会完全停止工作。",
+          "D": "它会制造更多咖啡。"
+        }
+      },
+      {
+        "id": "q2",
+        "stem": "What is the main idea of the passage?",
+        "options": {
+          "A": "Students should study all night before exams.",
+          "B": "Sleep is a waste of study time.",
+          "C": "Enough sleep is an important part of effective study.",
+          "D": "Students should never use screens."
+        },
+        "answer": "C",
+        "explanation": "文章先说明睡眠对记忆和注意力的作用，再给出改善睡眠的习惯，最后强调良好睡眠是有效学习的一部分，因此 C 正确。",
+        "stem_translation": "这篇文章的主旨是什么？",
+        "options_translation": {
+          "A": "学生应该在考试前通宵学习。",
+          "B": "睡眠是学习时间的浪费。",
+          "C": "充足睡眠是有效学习的重要组成部分。",
+          "D": "学生应该永远不使用屏幕。"
+        }
+      }
+    ]
+  }
+]
