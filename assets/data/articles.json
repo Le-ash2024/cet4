@@ -488,7 +488,7 @@
           "D": "How long people usually stayed in a company."
         },
         "answer": "C",
-        "explanation": "第1段指出，成功曾经被定义为能在一家公司长期任职、并沿企业晋升阶梯向上攀升。其目标是登上顶峰、积累财富、退休享福。我父亲是一位成功的高级主管。35年里他只为三家公司工作过。因此 C 正确。A 把例子局部细节当成例证目的=以偏概全（A项How long people took to …）；B 拎走并列项里的一个=以偏概全（B项How people accumulated w…）；D 把例子字面=目的，是答非所问（D项How long people usually …）。",
+        "explanation": "第1段指出，成功曾经被定义为能在一家公司长期任职、并沿企业晋升阶梯向上攀升。其目标是登上顶峰、积累财富、退休享福。我父亲是一位成功的高级主管。35年里他只为三家公司工作过。因此 C 正确。A 把例子局部细节当成例证目的=以偏概全（A项 How long people took to reach the top of their career.）；B 拎走并列项里的一个=以偏概全（B项 How people accumulated wealth in his father's time.）；D 把例子字面=目的，是答非所问（D项 How long people usually stayed in a company.）。",
         "stem_translation": "作者用他父亲的例子来说明什么?",
         "options_translation": {
           "A": "人们花多长时间到达职业生涯的顶峰。",
@@ -507,7 +507,7 @@
           "D": "It was difficult to keep a job for long."
         },
         "answer": "B",
-        "explanation": "第2段指出，如果你没在每三四年换一次公司，那你的职业基本就没在前进。因此 B 正确。A 无中生有（A项It was considered a fash…）；C 偷换概念（C项It was a response to the…）；D 与原文相反（D项It was difficult to keep…）。",
+        "explanation": "第2段指出，如果你没在每三四年换一次公司，那你的职业基本就没在前进。因此 B 正确。A 无中生有（A项 It was considered a fashion at that time.）；C 偷换概念（C项 It was a response to the changing job market.）；D 与原文相反（D项 It was difficult to keep a job for long.）。",
         "stem_translation": "当作者开始他的职业生涯时,为什么人们经常换工作?",
         "options_translation": {
           "A": "这在当时被认为是一种时尚。",
@@ -526,7 +526,7 @@
           "D": "They feel proud of being outstanding problem solvers."
         },
         "answer": "A",
-        "explanation": "第3段指出，如今，同时为五家公司做咨询或自由职业是一种荣誉徽章，它显示一个人有多么有价值。因此 A 正确。B 张冠李戴（错段拼接）（B项They are able to bring t…）；C 过度推断（C项They have control over t…）；D 偷换概念（叙述视角+部分原因）（D项They feel proud of being…）。",
+        "explanation": "第3段指出，如今，同时为五家公司做咨询或自由职业是一种荣誉徽章，它显示一个人有多么有价值。因此 A 正确。B 张冠李戴（错段拼接）（B项 They are able to bring their potential into fuller play.）；C 过度推断（C项 They have control over their life and work schedules.）；D 偷换概念（叙述视角+部分原因）（D项 They feel proud of being outstanding problem solvers.）。",
         "stem_translation": "关于现在同时为几家企业工作的人,作者说了什么?",
         "options_translation": {
           "A": "他们常被视为最宝贵的人才。",
@@ -545,7 +545,7 @@
           "D": "Why some people are more passionate about work."
         },
         "answer": "C",
-        "explanation": "第4段指出，最重要的是，人们越来越认识到：那些工作与休息平衡、并从事自己所热爱之事的人，更专注、更高产，能给客户带来更大的价值。因此 C 正确。A 张冠李戴+偷换程度（A项Who is capable of solvin…）；B 答非所问（偷换疑问词）（B项How people can be more f…）；D 答非所问+偷换重心（D项Why some people are more…）。",
+        "explanation": "第4段指出，最重要的是，人们越来越认识到：那些工作与休息平衡、并从事自己所热爱之事的人，更专注、更高产，能给客户带来更大的价值。因此 C 正确。A 张冠李戴+偷换程度（A项 Who is capable of solving problems with ease.）；B 答非所问（偷换疑问词）（B项 How people can be more focused and productive.）；D 答非所问+偷换重心（D项 Why some people are more passionate about work.）。",
         "stem_translation": "企业现在认识到了什么?",
         "options_translation": {
           "A": "谁能够轻松地解决问题。",
@@ -564,7 +564,7 @@
           "D": "It will bring about radical economic and social changes."
         },
         "answer": "D",
-        "explanation": "第6段指出，或许更重要的是，随着全球经济持续被技术和其他剧变所颠覆，零工经济本身将成为经济与社会变革的引擎。因此 D 正确。A 过度推断（A项It may force companies t…）；B 与原文相反（B项It may soon replace the …）；C 与原文相反（因果颠倒）（C项It will drive technologi…）。",
+        "explanation": "第6段指出，或许更重要的是，随着全球经济持续被技术和其他剧变所颠覆，零工经济本身将成为经济与社会变革的引擎。因此 D 正确。A 过度推断（A项 It may force companies to reform their business practice.）；B 与原文相反（B项 It may soon replace the traditional economic model.）；C 与原文相反（因果颠倒）（C项 It will drive technological progress on a global scale.）。",
         "stem_translation": "关于零工经济,作者说了什么?",
         "options_translation": {
           "A": "它可能迫使企业改革其商业实践。",
@@ -1283,7 +1283,7 @@
           "D": "It might prompt different responses from people of different social backgrounds."
         },
         "answer": "C",
-        "explanation": "第1段指出，尽管完全避免身体接触听起来很安全，可以不冒犯任何人，但缺乏触碰可能在人际关系中暗示冷漠的态度或漠不关心。因此 C 正确。A 无中生有（选项 getting increasingly im…）；B 偷换概念（原文没说\"原本认为接触冒犯的人现在更接受它了\"——i…）；D 张冠李戴（原文第一段没有引入\"社会背景\"维度——\"不同社会背景…）。",
+        "explanation": "第1段指出，尽管完全避免身体接触听起来很安全，可以不冒犯任何人，但缺乏触碰可能在人际关系中暗示冷漠的态度或漠不关心。因此 C 正确。A 无中生有（选项 Its role in interpersonal relationships is getting increasingly important.）；B 偷换概念（原文没说\"原本认为接触冒犯的人现在更接受它了\"——i…）；D 张冠李戴（原文第一段没有引入\"社会背景\"维度——\"不同社会背景…）。",
         "stem_translation": "作者在第一段中关于身体接触说了什么?",
         "options_translation": {
           "A": "它在人际关系中的作用正变得越来越重要。",
@@ -3224,7 +3224,7 @@
           "D": "Entrepreneurs are more naturally driven to success."
         },
         "answer": "A",
-        "explanation": "第3段指出，实际上，情况并非总是如此。因此 A 正确。B 偷换概念（this 指代的是\"更易成功\"，并非\"积极特质\"…）；C 与原文相反（原文只说极端野心 may end up doing …）；D 与原文相反（选项 more naturally driven t…）。",
+        "explanation": "第3段指出，实际上，情况并非总是如此。因此 A 正确。B 偷换概念（this 指代的是\"更易成功\"，并非\"积极特质\"…）；C 与原文相反（原文只说极端野心 may end up doing …）；D 与原文相反（选项 Entrepreneurs are more naturally driven to success.）。",
         "stem_translation": "作者说\"情况并非总是如此\"(第3段第1行)意味着什么?",
         "options_translation": {
           "A": "有雄心的人可能没有更大的成功机会。",
@@ -3243,7 +3243,7 @@
           "D": "Avoiding radical change in one's career direction."
         },
         "answer": "B",
-        "explanation": "第4段指出，这是有问题的，因为它会损害你适应新环境的能力，而这种能力对于想成为成功创业者的人至关重要。因此 B 正确。A 与原文相反（原文说过度野心导致 focus too determ…）；C 与原文相反（选项 Focusing determinedly o…）；D 与原文相反（原文说有时须 change direction\"改变…）。",
+        "explanation": "第4段指出，这是有问题的，因为它会损害你适应新环境的能力，而这种能力对于想成为成功创业者的人至关重要。因此 B 正确。A 与原文相反（原文说过度野心导致 focus too determ…）；C 与原文相反（选项 Focusing determinedly on one particular goal.）；D 与原文相反（原文说有时须 change direction\"改变…）。",
         "stem_translation": "作者认为对于成为成功的企业家来说,什么是极其重要的?",
         "options_translation": {
           "A": "坚持自己最初的愿景。",
@@ -5730,7 +5730,7 @@
           "D": "How serious their protein deficiency is and what remedies they use."
         },
         "answer": "B",
-        "explanation": "第5段指出，尽管最理想的蛋白摄入量可能因年龄和活动量不同而有所差异，美国人现在的蛋白摄入仍接近美国医学科学院推荐摄入量的两倍。因此 B 正确。A 无中生有（原文只列了 age and activity lev…）；C 偷换概念（原文要讨论的是\"理想蛋白摄入量\"本身…）；D 与原文相反（选项 How serious their prote…）。",
+        "explanation": "第5段指出，尽管最理想的蛋白摄入量可能因年龄和活动量不同而有所差异，美国人现在的蛋白摄入仍接近美国医学科学院推荐摄入量的两倍。因此 B 正确。A 无中生有（原文只列了 age and activity lev…）；C 偷换概念（原文要讨论的是\"理想蛋白摄入量\"本身…）；D 与原文相反（选项 How serious their protein deficiency is and what remedies they use.）。",
         "stem_translation": "人们在决定最理想的蛋白质摄入量时应考虑什么?",
         "options_translation": {
           "A": "他们有多健康以及他们吃什么食物。",
@@ -6071,7 +6071,7 @@
           "D": "By influencing our interpretation of symbolic messages."
         },
         "answer": "B",
-        "explanation": "第3段指出，我们也会基于所穿衣服来评价自己，因为衣服会影响我们的感受。因此 B 正确。A 偷换概念（原文 the way they make us fe…）；C 答非所问（选项 By affecting what we ta…）；D 张冠李戴（symbolic messages 是第 2 段谈衣…）。",
+        "explanation": "第3段指出，我们也会基于所穿衣服来评价自己，因为衣服会影响我们的感受。因此 B 正确。A 偷换概念（原文 the way they make us fe…）；C 答非所问（选项 By affecting what we take as the basis for assessment.）；D 张冠李戴（symbolic messages 是第 2 段谈衣…）。",
         "stem_translation": "我们所穿的衣服如何影响我们对自己的评价?",
         "options_translation": {
           "A": "通过对我们的判断力产生影响。",
@@ -6600,7 +6600,7 @@
           "D": "They hold different views about postponing retirement."
         },
         "answer": "A",
-        "explanation": "第1段指出，经济学家说她打算继续工作，因为她想这样做。理发师也同意继续工作，但理由不同：她需要钱。因此 A 正确。B 答非所问（B 项 They are both committe…）；C 无中生有（C 项 They are happy about t…）；D 偷换概念（D 项 They hold different vi…）。",
+        "explanation": "第1段指出，经济学家说她打算继续工作，因为她想这样做。理发师也同意继续工作，但理由不同：她需要钱。因此 A 正确。B 答非所问（B项 They are both committed to working into their 70s.）；C 无中生有（C项 They are happy about their current financial situation.）；D 偷换概念（D项 They hold different views about postponing retirement.）。",
         "stem_translation": "从文章中我们了解到关于经济学教授和她的理发师什么信息?",
         "options_translation": {
           "A": "他们继续工作的原因不同。",
@@ -6619,7 +6619,7 @@
           "D": "More and more people in the workplace find it hard to rely on traditional pensions."
         },
         "answer": "C",
-        "explanation": "第3段指出，除了人们更健康、寿命更长之外，经济学家说，多重经济因素的叠加——例如实际工资多年增长缓慢，以及私人部门远离传统养老金——是人们延迟退休的部分原因。因此 C 正确。A 偷换概念（原文说 the increase in the nu…）；B 无中生有（B 项 The number of jobs sui…）；D 偷换概念（原文 a shift away from tradi…）。",
+        "explanation": "第3段指出，除了人们更健康、寿命更长之外，经济学家说，多重经济因素的叠加——例如实际工资多年增长缓慢，以及私人部门远离传统养老金——是人们延迟退休的部分原因。因此 C 正确。A 偷换概念（原文说 the increase in the nu…）；B 无中生有（B项 The number of jobs suitable for older people has increased in the private sector.）；D 偷换概念（原文 a shift away from tradi…）。",
         "stem_translation": "人们推迟退休的原因之一是什么?",
         "options_translation": {
           "A": "越来越多的人转向了智力挑战性较低的工作。",
@@ -6638,7 +6638,7 @@
           "D": "The higher their educational level, the more likely they are to delay retirement."
         },
         "answer": "D",
-        "explanation": "第5段指出，这一整体趋势影响着所有学历层次的美国人，尽管各类别的比例有所不同。拥有本科学历、且仍在 70 多岁工作的美国人比例在 2018 年达到近 20%；高中及以下学历者比例约 10%；有部分大学经历者居中，约 15%。因此 D 正确。A 无中生有（A 项 The higher their earni…）；B 张冠李戴（B 项 Those who have more jo…）；C 张冠李戴（C 项 More men than women ar…）。",
+        "explanation": "第5段指出，这一整体趋势影响着所有学历层次的美国人，尽管各类别的比例有所不同。拥有本科学历、且仍在 70 多岁工作的美国人比例在 2018 年达到近 20%；高中及以下学历者比例约 10%；有部分大学经历者居中，约 15%。因此 D 正确。A 无中生有（A项 The higher their earnings, the more likely they are tempted to delay retirement.）；B 张冠李戴（B项 Those who have more job satisfaction tend to retire later than those who have less.）；C 张冠李戴（C项 More men than women are likely to stay in the labor force until their late seventies.）。",
         "stem_translation": "人们推迟退休的总体趋势是什么?",
         "options_translation": {
           "A": "收入越高,他们越有可能倾向于推迟退休。",
@@ -6657,7 +6657,7 @@
           "D": "Increasing social security payments."
         },
         "answer": "B",
-        "explanation": "第6段指出，他指出，许多受过大学教育的劳动者选择继续留在劳动力市场，更多是出于社交方面的好处，而不是经济原因。因此 B 正确。A 与原文相反（A 项 Enjoying financial sec…）；C 过度推断（C 项 Contributing more prof…）；D 无中生有（D 项 Increasing social secu…）。",
+        "explanation": "第6段指出，他指出，许多受过大学教育的劳动者选择继续留在劳动力市场，更多是出于社交方面的好处，而不是经济原因。因此 B 正确。A 与原文相反（A项 Enjoying financial security.）；C 过度推断（C项 Contributing more professionally.）；D 无中生有（D项 Increasing social security payments.）。",
         "stem_translation": "根据一位经济学家的说法,受过大学教育的工人推迟退休的主要原因是什么?",
         "options_translation": {
           "A": "享有财务保障。",
@@ -6676,7 +6676,7 @@
           "D": "They tend to anticipate retirement."
         },
         "answer": "D",
-        "explanation": "第7段指出，另一方面，从事体力劳动较多的工人则可能更期待退休；Baily 说，那些继续留下来的多半是出于经济原因。因此 D 正确。A 过度推断（A 项 They are eager to enjo…）；B 过度推断（B 项 They are likely to hav…）；C 无中生有（C 项 They generally don't e…）。",
+        "explanation": "第7段指出，另一方面，从事体力劳动较多的工人则可能更期待退休；Baily 说，那些继续留下来的多半是出于经济原因。因此 D 正确。A 过度推断（A项 They are eager to enjoy life after retiring.）；B 过度推断（B项 They are likely to have financial troubles.）；C 无中生有（C项 They generally don't enjoy doing it.）。",
         "stem_translation": "文章关于从事体力劳动的人说了什么?",
         "options_translation": {
           "A": "他们渴望退休后享受生活。",
@@ -7401,7 +7401,7 @@
           "D": "They generally rely on luck and chance for success."
         },
         "answer": "B",
-        "explanation": "第1段指出，他们认为任何成功都归因于外部环境，或者仅仅是运气和机遇。因此 B 正确。A 偷换概念（选项说 systematically underes…）；C 偷换概念（选项 live in constant fear o…）；D 过度推断（选项 generally rely on luck …）。",
+        "explanation": "第1段指出，他们认为任何成功都归因于外部环境，或者仅仅是运气和机遇。因此 B 正确。A 偷换概念（选项 They systematically underestimate their chances of success.）；C 偷换概念（选项 They seem to live in constant fear of being deceived.）；D 过度推断（选项 They generally rely on luck and chance for success.）。",
         "stem_translation": "关于遭受所谓冒名顶替现象困扰的人，我们从文章中了解到什么？",
         "options_translation": {
           "A": "他们系统性地低估自己成功的可能性。",
@@ -7420,7 +7420,7 @@
           "D": "Deliver a better performance."
         },
         "answer": "C",
-        "explanation": "第2段指出，适度的反思和自我怀疑能够防止一个人冲动行事。因此 C 正确。A 张冠李戴（选项 Credit all their succes…）；B 无中生有（选项 Strive hard to perfect …）；D 答非所问（选项 Deliver a better perfor…）。",
+        "explanation": "第2段指出，适度的反思和自我怀疑能够防止一个人冲动行事。因此 C 正确。A 张冠李戴（选项 Credit all their successes to hard work.）；B 无中生有（选项 Strive hard to perfect their skills.）；D 答非所问（选项 Deliver a better performance.）。",
         "stem_translation": "拥有适度反思和自我怀疑的人往往会做什么？",
         "options_translation": {
           "A": "把所有的成功都归功于努力工作。",
@@ -7439,7 +7439,7 @@
           "D": "Mark down their objectively rated performance."
         },
         "answer": "D",
-        "explanation": "第4段指出，有表现出冒名顶替现象倾向的人会贬低他们客观测得的表现，并把积极结果归因于运气等外部原因，而非他们自己的能力。因此 D 正确。A 偷换概念（选项 Attribute their accompl…）；B 偷换概念（选项 Deny their actual measu…）；C 与原文相反（选项 Claim to have confidenc…）。",
+        "explanation": "第4段指出，有表现出冒名顶替现象倾向的人会贬低他们客观测得的表现，并把积极结果归因于运气等外部原因，而非他们自己的能力。因此 D 正确。A 偷换概念（选项 Attribute their accomplishments to others.）；B 偷换概念（选项 Deny their actual measured intelligence.）；C 与原文相反（选项 Claim to have confidence in their own abilities.）。",
         "stem_translation": "根据哈雷-维滕贝格马丁·路德大学心理学家的说法，遭受冒名顶替现象困扰的人常常会怎么做？",
         "options_translation": {
           "A": "把自己的成就归功于他人。",
@@ -7458,7 +7458,7 @@
           "D": "They will keep improving their own skills."
         },
         "answer": "B",
-        "explanation": "第5段指出，长期低估自己的能力常常伴随着一种恐惧：这种所谓的智力欺骗迟早会被揭穿，并且他们会为此付出代价。因此 B 正确。A 答非所问（选项 focus their attention o…）；C 过度推断（选项 count on good fortune f…）；D 无中生有（选项 keep improving their ow…）。",
+        "explanation": "第5段指出，长期低估自己的能力常常伴随着一种恐惧：这种所谓的智力欺骗迟早会被揭穿，并且他们会为此付出代价。因此 B 正确。A 答非所问（选项 They will focus their attention on external factors.）；C 过度推断（选项 They will count on good fortune for success.）；D 无中生有（选项 They will keep improving their own skills.）。",
         "stem_translation": "当一个人长期低估自己的能力时，会发生什么？",
         "options_translation": {
           "A": "他们会把注意力集中在外部因素上。",
@@ -7477,7 +7477,7 @@
           "D": "They will pay higher prices one day."
         },
         "answer": "A",
-        "explanation": "第5段指出，然而，患有冒名顶替现象的人表现出更高的抑郁易感性。因此 A 正确。B 过度推断（选项 They seldom realise the…）；C 与原文相反（选项 They will develop menta…）；D 偷换概念（选项 They will pay higher pr…）。",
+        "explanation": "第5段指出，然而，患有冒名顶替现象的人表现出更高的抑郁易感性。因此 A 正确。B 过度推断（选项 They seldom realise their potential fully.）；C 与原文相反（选项 They will develop mental illnesses.）；D 偷换概念（选项 They will pay higher prices one day.）。",
         "stem_translation": "美国心理学家 Pauline Clance 和 Suzanne Imes 对遭受冒名顶替现象困扰的人作何评价？",
         "options_translation": {
           "A": "他们更容易患抑郁症。",
@@ -7512,7 +7512,7 @@
           "D": "It is the only language favored by all peoples of the world."
         },
         "answer": "B",
-        "explanation": "第1段指出，音乐在全球范围内都极为重要，并且有可能将人们凝聚在一起，实现和平与和谐。因此 B 正确。A 偷换概念（选项 It is able to create no…）；C 过度推断（原文 bring people together i…）；D 过度推断（原文 Music is a universal la…）。",
+        "explanation": "第1段指出，音乐在全球范围内都极为重要，并且有可能将人们凝聚在一起，实现和平与和谐。因此 B 正确。A 偷换概念（选项 It is able to create novel and extraordinary emotions.）；C 过度推断（原文 bring people together i…）；D 过度推断（原文 Music is a universal la…）。",
         "stem_translation": "音乐在哪一方面很重要？",
         "options_translation": {
           "A": "它能够创造新颖而非凡的情感。",
@@ -7531,7 +7531,7 @@
           "D": "Fantastic results can be achieved."
         },
         "answer": "D",
-        "explanation": "第1段指出，我在音乐中最喜欢的经历之一，就是看到来自不同文化的音乐家聚到一起、作为一个团体表演。当每种文化都为这个团体带来自己独特的特质时，一种全新的声音就产生了。这能创造出非凡的成果。因此 D 正确。A 无中生有（选项 Their musical experienc…）；B 偷换概念（原文 an entirely new sound i…）；C 偷换概念（原文 each culture brings its…）。",
+        "explanation": "第1段指出，我在音乐中最喜欢的经历之一，就是看到来自不同文化的音乐家聚到一起、作为一个团体表演。当每种文化都为这个团体带来自己独特的特质时，一种全新的声音就产生了。这能创造出非凡的成果。因此 D 正确。A 无中生有（选项 Their musical experience can be compared.）；B 偷换概念（原文 an entirely new sound i…）；C 偷换概念（原文 each culture brings its…）。",
         "stem_translation": "作者为什么喜欢观看来自不同文化背景的音乐家一起表演？",
         "options_translation": {
           "A": "他们的音乐经历可以进行比较。",
@@ -7569,7 +7569,7 @@
           "D": "To keep them entertained."
         },
         "answer": "C",
-        "explanation": "第4段指出，音乐本质上用于表达或改变情绪。因此 C 正确。A 答非所问（原文 has the potential to br…）；B 无中生有（选项 To show their identity …）；D 以偏概全（原文 Music can simply be rec…）。",
+        "explanation": "第4段指出，音乐本质上用于表达或改变情绪。因此 C 正确。A 答非所问（原文 has the potential to br…）；B 无中生有（选项 To show their identity.）；D 以偏概全（原文 Music can simply be rec…）。",
         "stem_translation": "音乐在人们生活中的根本作用是什么？",
         "options_translation": {
           "A": "将人们团结在一起。",

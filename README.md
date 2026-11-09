@@ -184,6 +184,8 @@ python batch_docx_import.py --folder "C:\Users\你\Desktop\四级阅读"
 
 - Word 段落之间用空行连接，保持正文和“段落翻译”的分段结构。
 - 优先使用文档里的“文章ID”；冲突时尝试文件名；仍冲突则自动加 `_docx` 后缀。
+- 解析里的“（选项 focus their attention o…）”这类缩写引文，会用 A-D 完整选项
+  自动还原，避免解析显示不全。
 - 正文和题目都相同的文件默认跳过，避免重复运行或重复 Word 文件造成重复题库；
   需要强制导入时可加 `--allow-duplicate-content`。
 - 单个 Word 解析失败只打印文件名并跳过，不中断整批。

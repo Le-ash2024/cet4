@@ -1999,6 +1999,8 @@ class ReadingAssistant:
             question.explanation,
             size=12,
             color="#4C5668",
+            max_lines=None,
+            overflow=ft.TextOverflow.VISIBLE,
         )
         explanation_box = ft.Container(
             visible=False,
@@ -2024,6 +2026,8 @@ class ReadingAssistant:
                                     question.stem_translation or "暂无翻译",
                                     size=11.5,
                                     color="#4B3B20",
+                                    max_lines=None,
+                                    overflow=ft.TextOverflow.VISIBLE,
                                 ),
                                 *[
                                     ft.Text(
@@ -2031,6 +2035,8 @@ class ReadingAssistant:
                                         f"{question.options_translation.get(letter) or '暂无翻译'}",
                                         size=11.5,
                                         color="#5A4A2A",
+                                        max_lines=None,
+                                        overflow=ft.TextOverflow.VISIBLE,
                                     )
                                     for letter in OPTION_LETTERS
                                 ],

@@ -118,6 +118,76 @@ def extract_docx_text(docx: Any, path: Path) -> str:
     return "\n\n".join(parts)
 
 
+OPTION_QUOTE_RE = re.compile(
+    r"（(?:(?P<kind>选项)\s*|(?P<letter>[A-D])\s*项?\s*[:：]?\s*)"
+    r"(?P<snippet>[^（）]+?)(?:…|\.\.\.)）"
+)
+
+
+def _normalize_quote(text: str) -> str:
+    return re.sub(r"[\s\"“”‘’.,;:!?…]+", "", (text or "").lower())
+
+
+def expand_option_quotes(explanation: str, options: dict[str, Any]) -> str:
+    """
+    Word 文档里常把解析中的选项引文缩写成
+    “（选项 focus their attention o…）”。
+    这里用题干 A-D 的完整选项文本还原引文，避免用户看到省略号。
+    """
+    option_texts = {
+        letter: str(options.get(letter, "")).strip()
+        for letter in ("A", "B", "C", "D")
+    }
+
+    def replace(match: re.Match[str]) -> str:
+        snippet = re.sub(
+            r"^[说：:，,\s]+", "", match.group("snippet").strip()
+        )
+        if not snippet:
+            return match.group(0)
+
+        letter = (match.group("letter") or "").upper()
+        candidates: list[tuple[str, str]] = []
+        if letter:
+            full = option_texts.get(letter, "")
+            if full and _normalize_quote(snippet) in _normalize_quote(full):
+                candidates = [(letter, full)]
+        if not candidates:
+            snippet_norm = _normalize_quote(snippet)
+            candidates = [
+                (key, text)
+                for key, text in option_texts.items()
+                if text and snippet_norm and snippet_norm in _normalize_quote(text)
+            ]
+        if len(candidates) != 1:
+            return match.group(0)
+
+        chosen_letter, full_text = candidates[0]
+        if match.group("kind") == "选项":
+            return f"（选项 {full_text}）"
+        if match.group("letter"):
+            return f"（{chosen_letter}项 {full_text}）"
+        return f"（选项 {full_text}）"
+
+    return OPTION_QUOTE_RE.sub(replace, explanation or "")
+
+
+def expand_article_option_quotes(article: dict[str, Any]) -> int:
+    """展开一篇文章里所有题目解析的选项缩写，返回修改的题目数。"""
+    changed = 0
+    for question in article.get("questions", []):
+        if not isinstance(question, dict):
+            continue
+        explanation = question.get("explanation", "")
+        options = question.get("options")
+        if isinstance(explanation, str) and isinstance(options, dict):
+            expanded = expand_option_quotes(explanation, options)
+            if expanded != explanation:
+                question["explanation"] = expanded
+                changed += 1
+    return changed
+
+
 def load_existing(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -328,6 +398,7 @@ def main() -> int:
             if not text.strip():
                 raise ValueError("Word 文档没有可读取的段落文字。")
             article = extractor.parse_article_text(text)
+            expand_article_option_quotes(article)
             fingerprint = article_fingerprint(article)
             if (
                 not args.allow_duplicate_content
